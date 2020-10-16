@@ -1,0 +1,20 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "/Users/vsyveniu/esp/esp-idf/components/bootloader/subproject",
+    "build_dir":          "/Users/vsyveniu/projects/rtos/t00/build/bootloader",
+    "config_file":        "/Users/vsyveniu/projects/rtos/t00/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v4.3-dev-1197-g8bc19ba89-dirty",
+    "target":             "esp32",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "xtensa-esp32-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "/Users/vsyveniu/esp/esp-idf/components/efuse/Kconfig;/Users/vsyveniu/esp/esp-idf/components/esp32/Kconfig;/Users/vsyveniu/esp/esp-idf/components/esp_common/Kconfig;/Users/vsyveniu/esp/esp-idf/components/log/Kconfig;/Users/vsyveniu/esp/esp-idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "/Users/vsyveniu/esp/esp-idf/components/bootloader/Kconfig.projbuild;/Users/vsyveniu/esp/esp-idf/components/esptool_py/Kconfig.projbuild;/Users/vsyveniu/esp/esp-idf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32", "esp_common", "esp_rom", "esptool_py", "hal", "log", "main", "micro-ecc", "partition_table", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "/Users/vsyveniu/esp/esp-idf/components/bootloader", "/Users/vsyveniu/esp/esp-idf/components/bootloader_support", "/Users/vsyveniu/esp/esp-idf/components/efuse", "/Users/vsyveniu/esp/esp-idf/components/esp32", "/Users/vsyveniu/esp/esp-idf/components/esp_common", "/Users/vsyveniu/esp/esp-idf/components/esp_rom", "/Users/vsyveniu/esp/esp-idf/components/esptool_py", "/Users/vsyveniu/esp/esp-idf/components/hal", "/Users/vsyveniu/esp/esp-idf/components/log", "/Users/vsyveniu/esp/esp-idf/components/bootloader/subproject/main", "/Users/vsyveniu/esp/esp-idf/components/bootloader/subproject/components/micro-ecc", "/Users/vsyveniu/esp/esp-idf/components/partition_table", "/Users/vsyveniu/esp/esp-idf/components/soc", "/Users/vsyveniu/esp/esp-idf/components/spi_flash", "/Users/vsyveniu/esp/esp-idf/components/xtensa", "" ]
+}
