@@ -1,0 +1,13 @@
+BasedOnStyle: Google
+
+DerivePointerAlignment: false
+PointerAlignment: Left
+AccessModifierOffset: -4
+AllowShortIfStatementsOnASingleLine: false
+BreakBeforeBraces: Allman
+ColumnLimit: 80
+IndentCaseLabels: false
+IndentWidth: 4
+SortIncludes: false
+TabWidth: 4
+BreakBeforeTernaryOperators: false
