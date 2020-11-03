@@ -51,6 +51,11 @@ void handle_disconnect()
     esp_wifi_disconnect();
 }
 
+void handle_sock_ping(struct arg_str *ip, struct arg_int *port, struct arg_int *count)
+{
+    printf("%s\n", "ping command");
+}
+
 void handle_help()
 {
     uart_print_str(UART_NUMBER, "\n\rExamples of commands you may use:");

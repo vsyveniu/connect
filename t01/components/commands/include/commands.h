@@ -20,6 +20,7 @@ int     cmd_connection_status(int argc, char **argv);
 int     cmd_disconnect(int argc, char **argv);
 int     cmd_help(int argc, char **argv);
 int     cmd_scan(int argc, char **argv);
+int     cmd_sock_ping(int argc, char** argv);
 int     cmd_exit();
 
 #endif

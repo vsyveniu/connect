@@ -2,9 +2,14 @@
 #include "argtable3/argtable3.h"
 #include "driver/i2s.h"
 
+#include <sys/socket.h>
+
 struct arg_str* ssid = NULL;
 struct arg_str* passwd = NULL;
 struct arg_end* end = NULL;
+struct arg_str* ip = NULL;
+struct arg_int* port = NULL;
+struct arg_int* count = NULL;
 
 void register_cmnd_set()
 {
@@ -23,6 +28,11 @@ void register_cmnd_set()
         .func = &cmd_disconnect,
     };
 
+    esp_console_cmd_t cmd_sock_ping_conf = {
+        .command = "ping",
+        .func = &cmd_sock_ping,
+    };
+
     esp_console_cmd_t cmd_help_conf = {
         .command = "help",
         .func = &cmd_help,
@@ -37,6 +47,7 @@ void register_cmnd_set()
     esp_console_cmd_register(&cmd_connection_status_conf);
     esp_console_cmd_register(&cmd_disconnect_conf);
     esp_console_cmd_register(&cmd_help_conf);
+    esp_console_cmd_register(&cmd_sock_ping_conf);
     esp_console_cmd_register(&cmd_exit_conf);
 }
 
@@ -89,6 +100,59 @@ int cmd_disconnect(int argc, char** argv)
 
     handle_disconnect();
 
+    return 0;
+}
+
+int cmd_sock_ping(int argc, char** argv)
+{
+    int8_t nerrors = 0;
+
+    void* argtable[] = {
+        //ip = arg_str1("i", "ip", "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)([.]|$)){4}", "<n>", 0, "ip regexp"),
+        ip = arg_str1("i", NULL, "<string>", "ip regexp"),
+        port = arg_intn("p", NULL, "<n>", 0, 1, "the password option"),
+        count = arg_intn("c", NULL, "<n>", 0, 1, "the password option"),
+        end = arg_end(20),
+    };
+    port->count = 0;
+    count->count = 0;
+    *port->ival = 0;
+    *count->ival = 0;
+    nerrors = arg_parse(argc, argv, argtable);
+
+
+    struct in_addr ip_addr[1];
+
+    int aton_result = 0;
+    int ip_len = strlen(*ip->sval);
+    char *ip_copy = calloc(ip_len + 1, sizeof(char));
+    memcpy(ip_copy, *ip->sval, ip_len);
+
+    aton_result = inet_aton(ip_copy, &ip_addr);
+
+    free(ip_copy);
+
+    if (nerrors > 0 || aton_result == 0)
+    {
+        uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
+        arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+        return 0;
+    }
+    if(port->count > 0 && *port->ival < 0)
+    {
+        uart_print_str(UART_NUMBER, "\n\rport cannot be negative\n\r");
+        arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+        return 0;
+    }
+    if(count->count > 0 && *count->ival < 0)
+    {
+        uart_print_str(UART_NUMBER, "\n\rcount cannot be negative\n\r");
+        arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+        return 0;
+    }
+    
+    handle_sock_ping(ip, port, count);
+    arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     return 0;
 }
 

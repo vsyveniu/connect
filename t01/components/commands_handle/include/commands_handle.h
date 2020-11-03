@@ -24,6 +24,7 @@
 void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd);
 void handle_connection_status();
 void handle_disconnect();
+void handle_sock_ping(struct arg_str *ip, struct arg_int *port, struct arg_int *count);
 void handle_help();
 
 #endif
