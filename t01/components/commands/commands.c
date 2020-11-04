@@ -108,7 +108,6 @@ int cmd_sock_ping(int argc, char** argv)
     int8_t nerrors = 0;
 
     void* argtable[] = {
-        //ip = arg_str1("i", "ip", "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)([.]|$)){4}", "<n>", 0, "ip regexp"),
         ip = arg_str1("i", NULL, "<string>", "ip regexp"),
         port = arg_intn("p", NULL, "<n>", 0, 1, "the password option"),
         count = arg_intn("c", NULL, "<n>", 0, 1, "the password option"),
@@ -118,19 +117,23 @@ int cmd_sock_ping(int argc, char** argv)
     count->count = 0;
     *port->ival = 0;
     *count->ival = 0;
-    nerrors = arg_parse(argc, argv, argtable);
 
+    nerrors = arg_parse(argc, argv, argtable);
 
     struct in_addr ip_addr[1];
 
     int aton_result = 0;
     int ip_len = strlen(*ip->sval);
     char *ip_copy = calloc(ip_len + 1, sizeof(char));
+    //char ip_copy[16];
+    //memset(ip_copy, 0, 16);
     memcpy(ip_copy, *ip->sval, ip_len);
 
     aton_result = inet_aton(ip_copy, &ip_addr);
 
-    free(ip_copy);
+    printf("%d\n", nerrors);
+    printf("%d\n", aton_result);
+    printf("$%s$\n", ip_copy);
 
     if (nerrors > 0 || aton_result == 0)
     {
@@ -150,9 +153,15 @@ int cmd_sock_ping(int argc, char** argv)
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
         return 0;
     }
-    
-    handle_sock_ping(ip, port, count);
+    int port_copy = 0; 
+    port_copy = *port->ival;
+    int count_copy = 0; 
+    count_copy = *count->ival;
+
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+    handle_sock_ping(ip_copy, port_copy, count_copy);
+
+    
     return 0;
 }
 

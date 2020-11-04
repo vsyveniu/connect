@@ -48,6 +48,7 @@ void app_main()
     wifi_get_nvs_data(&wifi_sta_info);
 
     wifi_info_queue = xQueueCreate( 1, sizeof(wifi_sta_info_s) );
+    socket_params_queue = xQueueCreate( 1, sizeof(socket_params_s) );
 
     UBaseType_t is_filled = 0;
     is_filled = uxQueueMessagesWaiting(wifi_info_queue);

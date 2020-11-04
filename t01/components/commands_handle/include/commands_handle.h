@@ -2,6 +2,7 @@
 # define COMMANDS_HANDLE_H
 
 #include <unistd.h>
+#include "defines.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -24,7 +25,7 @@
 void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd);
 void handle_connection_status();
 void handle_disconnect();
-void handle_sock_ping(struct arg_str *ip, struct arg_int *port, struct arg_int *count);
+void handle_sock_ping(char *ip, int port, int count);
 void handle_help();
 
 #endif

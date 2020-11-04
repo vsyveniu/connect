@@ -34,9 +34,18 @@ typedef struct uart_saved_input_t
         
 } uart_saved_input_s;
 
+typedef struct socket_params_t
+{
+    int32_t     port;
+    int32_t     count;
+    char        *ip;
+        
+} socket_params_s;
+
 QueueHandle_t wifi_info_queue;
 QueueHandle_t uart_save_input_queue;
 QueueHandle_t uart_is_saved;
+QueueHandle_t socket_params_queue;
 xSemaphoreHandle uart_mutex_output;
 nvs_handle_t wifi_nvs_handle;
 
