@@ -103,12 +103,15 @@ void wifi_ping_task(void *params)
         {
             ESP_LOGI(INFOTAG, "Successfully connected");
 
-            while(socket_params->count > 0)
+            int32_t i = 0;
+            int32_t j = socket_params->count;
+            printf("%d\n", j);
+            while(j > 0)
             {
-                int32_t i = 0;
+                 
                 char payload[11];
                 //char *payload = "PING #1";
-                sprintf(payload, "PING #1%d", i);
+                sprintf(payload, "PING #%d", i);
 
                 err = send(sock, payload, strlen(payload), 0);
                 if (err < 0) {
@@ -128,6 +131,10 @@ void wifi_ping_task(void *params)
                 }
 
                 vTaskDelay(2000 / portTICK_PERIOD_MS);
+                printf("%s\n", rx_buffer); 
+                j--;
+                i++;
+                printf("%d\n", i);
             }
             if (sock != -1) {
                 ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
