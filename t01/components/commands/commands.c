@@ -158,10 +158,14 @@ int cmd_sock_ping(int argc, char** argv)
     int count_copy = 0; 
     count_copy = *count->ival;
 
+    port->count = 0;
+    count->count = 0;
+    *port->ival = 0;
+    *count->ival = 0;
+
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     handle_sock_ping(ip_copy, port_copy, count_copy);
 
-    
     return 0;
 }
 
