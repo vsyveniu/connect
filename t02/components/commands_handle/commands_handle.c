@@ -46,8 +46,6 @@ void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
 
     uart_print_str(UART_NUMBER, "\r\n");
     wifi_connect(ssid_copy, passwd_copy);
-    free(ssid_copy);
-    free(passwd_copy);
 }
 
 void handle_http_get(struct arg_str *url)

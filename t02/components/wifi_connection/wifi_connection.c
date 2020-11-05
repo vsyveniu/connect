@@ -38,6 +38,7 @@ esp_err_t wifi_init()
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
     esp_wifi_set_mode(WIFI_MODE_STA);
+    printf("passwd %s\n", passwd);
 
     if(strlen(ssid_name) > 0)
     {

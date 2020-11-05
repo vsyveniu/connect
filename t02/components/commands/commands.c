@@ -108,7 +108,19 @@ int cmd_http_get(int argc, char** argv)
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
         return 0;
     }
+    printf("%c\n", *url->sval[0]);
+    if(*url->sval[0] == '/')
+    {
+        uart_print_str(UART_NUMBER, "\n\rdo you want some file, ya boy? I can give you nothing but fuck off\n\r");
+        printf("%s\n", "FUUUUCK");
+    }
     printf("%s\n", *url->sval);
+    char *fuck = calloc(strlen(*url->sval) + 1, sizeof(char));
+    memcpy(fuck, *url->sval, strlen(*url->sval));
+
+    char *tok = strtok(fuck, "/");
+
+    printf("%s\n", tok);
 
     //handle_http_get(url);
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
