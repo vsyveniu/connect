@@ -11,10 +11,14 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 #include "esp_log.h"
+#include "lwip/ip4_addr.h"
+#include "lwip/dns.h"
 
 
 static const char* ERRORTAG = "error: ";
 static const char* INFOTAG = "info: ";
+
+bool bDNSFound = false;
 
 void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
 {
@@ -48,18 +52,143 @@ void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
     wifi_connect(ssid_copy, passwd_copy);
 }
 
-void handle_http_get(struct arg_str *url)
+void dns_found_cb(const char *name, const ip_addr_t *ipaddr, void *callback_arg)
 {
-    int32_t url_len;
-    char *url_copy;
+    bDNSFound = true;
+}
 
-    url_len = strlen(*url->sval);
+void handle_http_get(const char *host, const char *url)
+{
+    printf("%s\n", host);
+    printf("%s\n", url);
 
-    url_copy = calloc(url_len + 1, sizeof(char));
+    esp_err_t err = 0;
+    ip_addr_t ip_Addr;
 
-    printf("%s\n", url_copy);
+    err = dns_gethostbyname(host, &ip_Addr, dns_found_cb, NULL );
+    if(err != 0 )
+    {
+        while(err != 0)
+        {
+            err = dns_gethostbyname(host, &ip_Addr, dns_found_cb, NULL );
+        }
+    }
 
-    free(url_copy);
+    printf("\n%d", err);
+
+    printf( "DNS found: %i.%i.%i.%i\n", 
+        ip4_addr1(&ip_Addr.u_addr.ip4), 
+        ip4_addr2(&ip_Addr.u_addr.ip4), 
+        ip4_addr3(&ip_Addr.u_addr.ip4), 
+        ip4_addr4(&ip_Addr.u_addr.ip4) );
+
+    char *addr = ip4addr_ntoa(&ip_Addr.u_addr.ip4);
+
+        char rx_buffer[128];
+        char addr_str[128];
+        int addr_family;
+        int ip_protocol;
+
+    struct sockaddr_in dest_addr = {
+        .sin_addr.s_addr = inet_addr(addr),
+        .sin_family = AF_INET,
+        //.sin_port = htons(0),
+       // .sin_port = htons(0),
+   
+    };
+
+    inet_ntoa_r(dest_addr.sin_addr, addr, sizeof(addr) - 1);
+
+        addr_family = AF_INET;
+        ip_protocol = IPPROTO_IP;
+
+        int sock =  socket(addr_family, SOCK_STREAM, ip_protocol);
+        if (sock < 0) {
+            ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
+        }
+        ESP_LOGI(INFOTAG, "Socket created, connecting to %s", addr);
+
+        err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+
+
+        if (err != 0) {
+            ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
+        }
+        else
+        {
+            ESP_LOGI(INFOTAG, "Successfully connected");
+            char mhdr_buff[128];
+            //char mhdr_rx_buff[128];
+
+            struct msghdr mhdr;
+            struct iovec iov[1];
+            iov[0].iov_base = mhdr_buff;
+            iov[0].iov_len = sizeof(mhdr_buff);
+            memset(mhdr_buff, 0, sizeof(mhdr_buff));
+            struct cmsghdr *cmhdr;
+
+            
+
+      /*       struct msghdr {
+                void         *msg_name;
+                socklen_t     msg_namelen;
+                struct iovec *msg_iov;
+                int           msg_iovlen;
+                void         *msg_control;
+                socklen_t     msg_controllen;
+                int           msg_flags;
+            }; */
+    
+           
+            char control[1000];
+            struct sockaddr_in sin;
+            //unsigned char tos;
+
+            mhdr.msg_name = &sin;
+            mhdr.msg_namelen = sizeof(sin);
+            mhdr.msg_iov = iov;
+            mhdr.msg_iovlen = 1;
+            mhdr.msg_control = &control;
+            mhdr.msg_controllen = sizeof(control);
+
+                 
+                char payload[11];
+                //char *payload = "PING #1";
+                //sprintf(payload, "PING #%d");
+               //printf("%s\n", payload);
+
+               // err = send(sock, payload, strlen(payload), 0);
+
+
+                //err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
+                err = send(sock, payload, strlen(payload), 0);
+                if (err < 0) {
+                    ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
+                }
+                printf("something was sent? %d\n", err);
+
+                //int len = recvmsg(sock, &mhdr, MSG_DONTWAIT);
+                int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+                printf("something was received? %d\n", len);
+                // Error occurred during receiving
+                if (len < 0) {
+                    ESP_LOGE(ERRORTAG, "recv failed: errno %d", errno);
+                }
+                // Data received
+                else {
+                    rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
+                    ESP_LOGI(ERRORTAG, "Received %d bytes from %s:", len, addr_str);
+                    ESP_LOGI(ERRORTAG, "%s", rx_buffer);
+                }
+
+                vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+            }
+                if (sock != -1) {
+                    ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
+                    shutdown(sock, 0);
+                    close(sock);
+                } 
 }
 
 void handle_connection_status()

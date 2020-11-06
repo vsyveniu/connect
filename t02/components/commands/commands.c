@@ -115,14 +115,20 @@ int cmd_http_get(int argc, char** argv)
         printf("%s\n", "FUUUUCK");
     }
     printf("%s\n", *url->sval);
-    char *fuck = calloc(strlen(*url->sval) + 1, sizeof(char));
-    memcpy(fuck, *url->sval, strlen(*url->sval));
+    char *host_tmp = calloc(strlen(*url->sval) + 1, sizeof(char));
+    char *url_full = calloc(strlen(*url->sval) + 1, sizeof(char));
 
-    char *tok = strtok(fuck, "/");
+    memcpy(host_tmp, *url->sval, strlen(*url->sval));
+    memcpy(url_full, *url->sval, strlen(*url->sval));
 
-    printf("%s\n", tok);
+    char *host = strtok(host_tmp, "/");
 
-    //handle_http_get(url);
+    printf("host %s\n", host);
+    printf("full url%s\n", url_full);
+
+
+    handle_http_get(host, url_full);
+    free(host_tmp);
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     return 0;
 }
