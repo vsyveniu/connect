@@ -42,10 +42,18 @@ typedef struct socket_params_t
         
 } socket_params_s;
 
+typedef struct get_url_params_t
+{
+    const char *host;
+    const char *query;
+
+} get_url_params_s;
+
 QueueHandle_t wifi_info_queue;
 QueueHandle_t uart_save_input_queue;
 QueueHandle_t uart_is_saved;
 QueueHandle_t socket_params_queue;
+QueueHandle_t get_url_params_queue;
 xSemaphoreHandle uart_mutex_output;
 nvs_handle_t wifi_nvs_handle;
 

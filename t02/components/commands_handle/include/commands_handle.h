@@ -26,7 +26,7 @@ void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd);
 void handle_connection_status();
 void handle_disconnect();
 void handle_sock_ping(char *ip, int port, int count);
-void handle_http_get(const char *host, const char *url);
+void handle_http_get(const char *host, const char *query);
 void handle_help();
 
 #endif

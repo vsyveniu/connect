@@ -82,6 +82,7 @@ int cmd_ssid_set(int argc, char** argv)
     return 0;
 }
 
+
 int cmd_http_get(int argc, char** argv)
 {
     int8_t nerrors = 0;
@@ -115,23 +116,41 @@ int cmd_http_get(int argc, char** argv)
         printf("%s\n", "FUUUUCK");
     }
     printf("%s\n", *url->sval);
-    char *host_tmp = calloc(strlen(*url->sval) + 1, sizeof(char));
-    char *url_full = calloc(strlen(*url->sval) + 1, sizeof(char));
+    char *host = calloc(strlen(*url->sval) + 1, sizeof(char));
+    //char *url_full = calloc(strlen(*url->sval) + 1, sizeof(char));
 
-    memcpy(host_tmp, *url->sval, strlen(*url->sval));
-    memcpy(url_full, *url->sval, strlen(*url->sval));
+    memcpy(host, *url->sval, strlen(*url->sval));
+    //memcpy(url_full, *url->sval, strlen(*url->sval));
 
-    char *host = strtok(host_tmp, "/");
+    char *query = strchr(host, '/');
+
+    if(query != NULL)
+    {
+        *query = '\0';
+        query++;
+    }
+    else
+    {
+        query = "";
+    }
+    
+
+    //char *rest = host;
 
     printf("host %s\n", host);
-    printf("full url%s\n", url_full);
 
+    printf("query %s\n", query);
+   // printf("rest %s\n", rest);
+   
 
-    handle_http_get(host, url_full);
-    free(host_tmp);
+    handle_http_get(host, query);
+   // free(host);
+    //free(query);
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     return 0;
 }
+
+
 
 int cmd_connection_status(int argc, char** argv)
 {

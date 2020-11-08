@@ -49,6 +49,7 @@ void app_main()
 
     wifi_info_queue = xQueueCreate( 1, sizeof(wifi_sta_info_s) );
     socket_params_queue = xQueueCreate( 1, sizeof(socket_params_s) );
+    get_url_params_queue = xQueueCreate( 1, sizeof(get_url_params_s) );
 
     UBaseType_t is_filled = 0;
     is_filled = uxQueueMessagesWaiting(wifi_info_queue);
