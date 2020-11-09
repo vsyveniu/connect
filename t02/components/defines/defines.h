@@ -44,8 +44,8 @@ typedef struct socket_params_t
 
 typedef struct get_url_params_t
 {
-    const char *host;
-    const char *query;
+    char *host;
+    char *query;
 
 } get_url_params_s;
 

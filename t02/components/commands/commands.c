@@ -139,14 +139,12 @@ int cmd_http_get(int argc, char** argv)
 
     printf("host %s\n", host);
 
-    printf("query %s\n", query);
    // printf("rest %s\n", rest);
-   
-
-    handle_http_get(host, query);
-   // free(host);
-    //free(query);
+    
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+    handle_http_get(host, query);
+    //free(host);
+   
     return 0;
 }
 

@@ -15,13 +15,12 @@
 #include "lwip/dns.h"
 #include <errno.h>
 
-
 static const char* ERRORTAG = "error: ";
 static const char* INFOTAG = "info: ";
 
 static bool bDNSFound = false;
 
-void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
+void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
 {
     int32_t ssid_len;
     int32_t passwd_len;
@@ -29,8 +28,8 @@ void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
     ssid_len = strlen(*ssid->sval);
     passwd_len = strlen(*passwd->sval);
 
-    char *ssid_copy;
-    char *passwd_copy;
+    char* ssid_copy;
+    char* passwd_copy;
 
     ssid_copy = calloc(ssid_len + 1, sizeof(char));
     passwd_copy = calloc(passwd_len + 1, sizeof(char));
@@ -53,19 +52,60 @@ void handle_ssid_set(struct arg_str *ssid, struct arg_str *passwd)
     wifi_connect(ssid_copy, passwd_copy);
 }
 
-
-// httpe_get //////////
-
-void dns_found_cb(const char *name, const ip_addr_t *ipaddr, void *callback_arg)
+esp_err_t dns_find_by_hostname(char* host, ip_addr_t* ip_Addr)
 {
-    printf("%s\n", "dns found");
-    bDNSFound = true;
+    esp_err_t err;
+
+    err = dns_gethostbyname(host, ip_Addr, NULL, NULL);
+
+    if (err == -16)
+    {
+        printf("dns err %s\n", "wrong host name");
+        uart_clear_up_line();
+        uart_print_str(UART_NUMBER, "DNS couldn't find ip by hostname");
+        uart_clear_line();
+    }
+    else if (err < 0)
+    {
+        int8_t dns_failed_times = 42;
+        while (err < 0)
+        {
+            err = dns_gethostbyname(host, ip_Addr, NULL, NULL);
+            printf("dns err %s\n", esp_err_to_name(err));
+            if (dns_failed_times == 0)
+            {
+                return (ESP_FAIL);
+            }
+            dns_failed_times--;
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
+    }
+    return (ESP_OK);
 }
 
+esp_err_t socket_set_options(int sock)
+{
+    struct timeval timeout;
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout,
+                   sizeof(timeout)) < 0)
+    {
+        printf("%s\n", "setsockoptfailed");
+        ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
+    }
+    if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout,
+                   sizeof(timeout)) < 0)
+    {
+        printf("%s\n", "setsockoptfailed");
+    }
+
+    return (ESP_OK);
+}
 
 void http_get_task()
 {
-
     get_url_params_s url_params[1];
 
     if (xQueueReceive(get_url_params_queue, &url_params, portMAX_DELAY))
@@ -73,200 +113,128 @@ void http_get_task()
         esp_err_t err = 0;
         ip_addr_t ip_Addr;
 
-        int8_t dns_failed_times = 42;
-        
-
-        printf("params->host %s\n", url_params->host);
-        err = dns_gethostbyname(url_params->host, &ip_Addr, dns_found_cb, NULL);
-        printf("dns err %s\n", esp_err_to_name(err));
-        if(err == -16)
+        err = dns_find_by_hostname(url_params->host, &ip_Addr);
+        if (err != ESP_OK)
         {
-             printf("dns err %s\n", "wrong host name");
+            printf("dns err %s\n", "couldn't find ip by hostname");
         }
-        else if(err < 0)
+        else
         {
-            if(dns_failed_times > 0)
-            {
-                while(err < 0)
-                {
-                    err = dns_gethostbyname(url_params->host, &ip_Addr, dns_found_cb, NULL);
-                    printf("dns err %s\n", esp_err_to_name(err));
-                    dns_failed_times--;
-                    vTaskDelay(100 / portTICK_PERIOD_MS);
+            char* addr = ip4addr_ntoa(&ip_Addr.u_addr.ip4);
 
-                }
-            }
-            else
-            {
-                printf("dns err %s\n", "couldn't find ip by hostname");
-            }
-            
-        }
-            printf( "DNS found: %i.%i.%i.%i\n", 
-                ip4_addr1(&ip_Addr.u_addr.ip4), 
-                ip4_addr2(&ip_Addr.u_addr.ip4), 
-                ip4_addr3(&ip_Addr.u_addr.ip4), 
-                ip4_addr4(&ip_Addr.u_addr.ip4) );
-
-            char *addr = ip4addr_ntoa(&ip_Addr.u_addr.ip4);
-
-                char rx_buffer[1024];
-                char addr_str[128];
-                int addr_family;
-                int ip_protocol;
+            int addr_family;
+            int ip_protocol;
 
             struct sockaddr_in dest_addr = {
                 .sin_addr.s_addr = inet_addr(addr),
                 .sin_family = AF_INET,
-                //.sin_port = htons(0),
                 .sin_port = htons(80),
-        
+
             };
 
             inet_ntoa_r(dest_addr.sin_addr, addr, sizeof(addr) - 1);
 
-                addr_family = AF_INET;
-                ip_protocol = IPPROTO_IP;
+            addr_family = AF_INET;
+            ip_protocol = IPPROTO_IP;
 
-                int sock =  socket(addr_family, SOCK_STREAM, ip_protocol);
-                if (sock < 0) {
-                    ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
-                }
+            int sock = socket(addr_family, SOCK_STREAM, ip_protocol);
+            if (sock < 0)
+            {
+                ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
+                err = -1;
+            }
+            else
+            {
                 ESP_LOGI(INFOTAG, "Socket created, connecting to %s", addr);
+                err = connect(sock, (struct sockaddr*)&dest_addr,
+                              sizeof(dest_addr));              
+            }
 
-                err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+            if (err != 0)
+            {
+                ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
+            }
+            else
+            {
+                ESP_LOGI(INFOTAG, "Successfully connected");
 
+                err = socket_set_options(sock);
+                if(err != ESP_OK)
+                {
+                    ESP_LOGE(ERRORTAG, "Unable to set socket options");
+                }
 
-                if (err != 0) {
-                    ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
+                char payload[256];
+                char rx_buffer[1024];
+
+                if (strlen(url_params->query) > 0)
+                {
+                    sprintf(payload, "GET %s HTTP/1.0\r\nHost: %s\r\n",
+                            url_params->query, url_params->host);
                 }
                 else
                 {
-                    ESP_LOGI(INFOTAG, "Successfully connected");
+                    sprintf(payload, "GET / HTTP/1.0\r\n\r\n");
+                }
 
-                    struct timeval timeout;      
-                    timeout.tv_sec = 10;
-                    timeout.tv_usec = 0;
+                err = send(sock, payload, strlen(payload), 0);
 
-                    if (setsockopt (sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
-                        sizeof(timeout)) < 0)
+                if (err < 0)
+                {
+                    ESP_LOGE(ERRORTAG,
+                             "Error occurred during sending: errno %d", errno);
+                }
+
+                int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+
+                if (len < 0)
+                {
+                    ESP_LOGE(ERRORTAG, "recv failed: errno %d", errno);
+                }
+                else
+                {
+                    rx_buffer[len] = 0;
+
+                    ESP_LOGI(INFOTAG, "Received %d bytes from %s:", len,
+                             url_params->query);
+                    char *pos = strchr(rx_buffer, '<');
+
+                    if(pos != NULL)
                     {
-                        printf("%s\n", "setsockoptfailed");
-                    }
-                    if (setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
-                        sizeof(timeout)) < 0)
-                    {
-                        printf("%s\n", "setsockoptfailed");
-                    }
-
-                    char mhdr_buff[256];
-                    //char mhdr_rx_buff[128];
-
-                    struct msghdr mhdr;
-                    struct iovec iov[1];
-                    iov[0].iov_base = mhdr_buff;
-                    iov[0].iov_len = sizeof(mhdr_buff);
-                    memset(mhdr_buff, 0, sizeof(mhdr_buff));
-                    struct cmsghdr *cmhdr;
-
-                    
-
-                    struct msghdr {
-                        void         *msg_name;
-                        socklen_t     msg_namelen;
-                        struct iovec *msg_iov;
-                        int           msg_iovlen;
-                        void         *msg_control;
-                        socklen_t     msg_controllen;
-                        int           msg_flags;
-                    }; 
-            
-                    
-                    char control[1000];
-                    struct sockaddr_in sin;
-                    //unsigned char tos;
-
-                    mhdr.msg_name = &sin;
-                    mhdr.msg_namelen = sizeof(sin);
-                    mhdr.msg_iov = iov;
-                    mhdr.msg_iovlen = 1;
-                    mhdr.msg_control = &control;
-                    mhdr.msg_controllen = sizeof(control);
-
-                        
-                        char payload[256]; 
-                        //char *payload = "PING #1";
-                    // sprintf(payload, "PING #%d");
-                    //printf("%s\n", payload);
-                    printf("query in handle %s\n", url_params->query);
-                    printf("query len %d\n", strlen(url_params->query));
-                    if(strlen(url_params->query) > 0)
-                    {
-                        printf("%s\n", "here > 0");
-                        
-                        sprintf(payload, "GET %s HTTP/1.0\r\nHost: %s\r\n", url_params->query, url_params->host);
-                            printf("payload %s\n", payload);
+                        pos--;
+                        *pos = '\0';
+                        pos++;
                     }
                     else
                     {
-                        printf("%s\n", "here < 0");
-                        
-                        //sprintf(payload, "GET / HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nContent-Length: 128\r\n", host);
-                        sprintf(payload, "GET / HTTP/1.0\r\n\r\n");
-                        printf("payload %s\n", payload);
+                        pos = "";
                     }
 
-                    // err = send(sock, payload, strlen(payload), 0);
+                    uart_print_str_value("\r\n\e[32mHEADERS:\n\r\e[34m--------------\e[39m \n\r", rx_buffer, NULL);    
+                    uart_print_str_value("\r\n\e[32mPAYLOAD::\n\r\e[34m--------------\e[39m \n\r", pos, NULL);    
+                    uart_clear_line();
+                }
+            }
 
+            if (sock != -1)
+            {
+                ESP_LOGI(INFOTAG, "Shutting down socket");
+                shutdown(sock, 0);
+                close(sock);
+            }
 
-                        //err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
-
-                        err = send(sock, payload, strlen(payload), 0);
-                        if (err < 0) {
-                            ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
-                        }
-                        printf("something was sent? %d\n", err);
-
-                        //int len = recvmsg(sock, &mhdr, MSG_DONTWAIT);
-                        int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
-                        printf("something was received? %d\n", len);
-                        // Error occurred during receiving
-                        if (len < 0) {
-                            ESP_LOGE(ERRORTAG, "recv failed: errno %d", errno);
-                        }
-                        // Data received
-                        else {
-                            rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
-                            ESP_LOGI(INFOTAG, "Received %d bytes from %s:", len, url_params->query);
-                            ESP_LOGI(INFOTAG, "%s", rx_buffer);
-                        }
-
-
-                    }
-                    uart_print_str(UART_NUMBER, rx_buffer);
-
-                    printf("sock %d\n", sock);
-                        if (sock != -1) {
-                            ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
-                            shutdown(sock, 0);
-                            close(sock);
-                        } 
-        
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
     }
-        vTaskDelete(NULL);
-        free(url_params->host);
-
+    free(url_params->host);
+    vTaskDelete(NULL);
 }
 
-
-void handle_http_get(const char *host, const char *query)
+void handle_http_get(char* host, char* query)
 {
-
     get_url_params_s url_params[1];
-    
-    url_params->host = host,
-    url_params->query = query,
+
+    url_params->host = host, url_params->query = query,
 
     xQueueSend(get_url_params_queue, &url_params, portMAX_DELAY);
     size_t hs;
@@ -277,20 +245,13 @@ void handle_http_get(const char *host, const char *query)
     xTaskCreate(http_get_task, "get request", 4096, NULL, 1, NULL);
 }
 
-
 //////end///////////
 
-void handle_connection_status()
-{
-    wifi_display_info();
-}
+void handle_connection_status() { wifi_display_info(); }
 
-void handle_disconnect()
-{
-    esp_wifi_disconnect();
-}
+void handle_disconnect() { esp_wifi_disconnect(); }
 
-void wifi_ping_task(void *params)
+void wifi_ping_task(void* params)
 {
     socket_params_s socket_params[1];
 
@@ -306,27 +267,30 @@ void wifi_ping_task(void *params)
         int ip_protocol;
 
         struct sockaddr_in dest_addr = {
-        .sin_addr.s_addr = inet_addr(socket_params->ip),
-        .sin_family = AF_INET,
-        //.sin_port = htons(0),
-        .sin_port = htons(socket_params->port),
-   
-    };
+            .sin_addr.s_addr = inet_addr(socket_params->ip),
+            .sin_family = AF_INET,
+            //.sin_port = htons(0),
+            .sin_port = htons(socket_params->port),
 
-    inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
+        };
+
+        inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
 
         addr_family = AF_INET;
         ip_protocol = IPPROTO_RAW;
         esp_err_t err;
 
-        int sock =  socket(addr_family, SOCK_RAW, ip_protocol);
-        if (sock < 0) {
+        int sock = socket(addr_family, SOCK_RAW, ip_protocol);
+        if (sock < 0)
+        {
             ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
         }
-        ESP_LOGI(INFOTAG, "Socket created, connecting to %s:%d", socket_params->ip, socket_params->port);
+        ESP_LOGI(INFOTAG, "Socket created, connecting to %s:%d",
+                 socket_params->ip, socket_params->port);
 
-        err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-        if (err != 0) {
+        err = connect(sock, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
+        if (err != 0)
+        {
             ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
         }
         else
@@ -337,31 +301,28 @@ void wifi_ping_task(void *params)
             int32_t j = socket_params->count;
             printf("%d\n", j);
             char mhdr_buff[128];
-            //char mhdr_rx_buff[128];
+            // char mhdr_rx_buff[128];
 
             struct msghdr mhdr;
             struct iovec iov[1];
             iov[0].iov_base = mhdr_buff;
             iov[0].iov_len = sizeof(mhdr_buff);
             memset(mhdr_buff, 0, sizeof(mhdr_buff));
-            struct cmsghdr *cmhdr;
+            struct cmsghdr* cmhdr;
 
-            
+            /*       struct msghdr {
+                      void         *msg_name;
+                      socklen_t     msg_namelen;
+                      struct iovec *msg_iov;
+                      int           msg_iovlen;
+                      void         *msg_control;
+                      socklen_t     msg_controllen;
+                      int           msg_flags;
+                  }; */
 
-      /*       struct msghdr {
-                void         *msg_name;
-                socklen_t     msg_namelen;
-                struct iovec *msg_iov;
-                int           msg_iovlen;
-                void         *msg_control;
-                socklen_t     msg_controllen;
-                int           msg_flags;
-            }; */
-    
-           
             char control[1000];
             struct sockaddr_in sin;
-            //unsigned char tos;
+            // unsigned char tos;
 
             mhdr.msg_name = &sin;
             mhdr.msg_namelen = sizeof(sin);
@@ -370,38 +331,41 @@ void wifi_ping_task(void *params)
             mhdr.msg_control = &control;
             mhdr.msg_controllen = sizeof(control);
 
- 
-            while(j > 0)
-            {  
-                 
+            while (j > 0)
+            {
                 char payload[11];
-                //char *payload = "PING #1";
+                // char *payload = "PING #1";
                 sprintf(payload, "PING #%d", i);
                 sprintf(mhdr_buff, "PING #%d", i);
                 printf("%s\n", mhdr_buff);
-               //printf("%s\n", payload);
+                // printf("%s\n", payload);
 
-               // err = send(sock, payload, strlen(payload), 0);
+                // err = send(sock, payload, strlen(payload), 0);
 
-
-                //err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
+                // err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
                 err = send(sock, payload, strlen(payload), 0);
-                if (err < 0) {
-                    ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
+                if (err < 0)
+                {
+                    ESP_LOGE(ERRORTAG,
+                             "Error occurred during sending: errno %d", errno);
                 }
                 printf("something was sent? %d\n", err);
 
-                //int len = recvmsg(sock, &mhdr, MSG_DONTWAIT);
+                // int len = recvmsg(sock, &mhdr, MSG_DONTWAIT);
                 int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
                 printf("something was received? %d\n", len);
                 // Error occurred during receiving
-                if (len < 0) {
+                if (len < 0)
+                {
                     ESP_LOGE(ERRORTAG, "recv failed: errno %d", errno);
                 }
                 // Data received
-                else {
-                    rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
-                    ESP_LOGI(ERRORTAG, "Received %d bytes from %s:", len, addr_str);
+                else
+                {
+                    rx_buffer[len] = 0;  // Null-terminate whatever we received
+                                         // and treat like a string
+                    ESP_LOGI(ERRORTAG, "Received %d bytes from %s:", len,
+                             addr_str);
                     ESP_LOGI(ERRORTAG, "%s", rx_buffer);
                 }
 
@@ -410,26 +374,25 @@ void wifi_ping_task(void *params)
                 i++;
                 printf("%d\n", i);
             }
-                if (sock != -1) {
-                    ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
-                    shutdown(sock, 0);
-                    close(sock);
-                } 
+            if (sock != -1)
+            {
+                ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
+                shutdown(sock, 0);
+                close(sock);
+            }
         }
-    } 
-    
+    }
+
     free(socket_params->ip);
     vTaskDelete(NULL);
 }
 
-
-void handle_sock_ping(char *ip, int port, int count)
+void handle_sock_ping(char* ip, int port, int count)
 {
     socket_params_s socket_params[1];
-    
+
     printf("ip %s\n", ip);
-    socket_params->ip = ip,
-    socket_params->port = port,
+    socket_params->ip = ip, socket_params->port = port,
     socket_params->count = count,
 
     xQueueSend(socket_params_queue, &socket_params, portMAX_DELAY);
