@@ -14,11 +14,10 @@
 #include "lwip/ip4_addr.h"
 #include "lwip/dns.h"
 #include <errno.h>
+#include "socket_connection.h"
 
 static const char* ERRORTAG = "error: ";
 static const char* INFOTAG = "info: ";
-
-static bool bDNSFound = false;
 
 void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
 {
@@ -52,57 +51,6 @@ void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
     wifi_connect(ssid_copy, passwd_copy);
 }
 
-esp_err_t dns_find_by_hostname(char* host, ip_addr_t* ip_Addr)
-{
-    esp_err_t err;
-
-    err = dns_gethostbyname(host, ip_Addr, NULL, NULL);
-
-    if (err == -16)
-    {
-        printf("dns err %s\n", "wrong host name");
-        uart_clear_up_line();
-        uart_print_str(UART_NUMBER, "DNS couldn't find ip by hostname");
-        uart_clear_line();
-    }
-    else if (err < 0)
-    {
-        int8_t dns_failed_times = 42;
-        while (err < 0)
-        {
-            err = dns_gethostbyname(host, ip_Addr, NULL, NULL);
-            printf("dns err %s\n", esp_err_to_name(err));
-            if (dns_failed_times == 0)
-            {
-                return (ESP_FAIL);
-            }
-            dns_failed_times--;
-            vTaskDelay(100 / portTICK_PERIOD_MS);
-        }
-    }
-    return (ESP_OK);
-}
-
-esp_err_t socket_set_options(int sock)
-{
-    struct timeval timeout;
-    timeout.tv_sec = 10;
-    timeout.tv_usec = 0;
-
-    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout,
-                   sizeof(timeout)) < 0)
-    {
-        printf("%s\n", "setsockoptfailed");
-        ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
-    }
-    if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout,
-                   sizeof(timeout)) < 0)
-    {
-        printf("%s\n", "setsockoptfailed");
-    }
-
-    return (ESP_OK);
-}
 
 void http_get_task()
 {
@@ -116,45 +64,25 @@ void http_get_task()
         err = dns_find_by_hostname(url_params->host, &ip_Addr);
         if (err != ESP_OK)
         {
-            printf("dns err %s\n", "couldn't find ip by hostname");
+             ESP_LOGE(ERRORTAG, "couldn't find ip by hostname");
         }
         else
         {
             char* addr = ip4addr_ntoa(&ip_Addr.u_addr.ip4);
 
-            int addr_family;
-            int ip_protocol;
-
             struct sockaddr_in dest_addr = {
                 .sin_addr.s_addr = inet_addr(addr),
                 .sin_family = AF_INET,
                 .sin_port = htons(80),
-
             };
 
             inet_ntoa_r(dest_addr.sin_addr, addr, sizeof(addr) - 1);
 
-            addr_family = AF_INET;
-            ip_protocol = IPPROTO_IP;
+            int sock;
 
-            int sock = socket(addr_family, SOCK_STREAM, ip_protocol);
-            if (sock < 0)
-            {
-                ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
-                err = -1;
-            }
-            else
-            {
-                ESP_LOGI(INFOTAG, "Socket created, connecting to %s", addr);
-                err = connect(sock, (struct sockaddr*)&dest_addr,
-                              sizeof(dest_addr));              
-            }
+            err = socket_create(AF_INET, SOCK_STREAM, IPPROTO_IP, &dest_addr, &sock);
 
-            if (err != 0)
-            {
-                ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
-            }
-            else
+            if (err == ESP_OK)
             {
                 ESP_LOGI(INFOTAG, "Successfully connected");
 
@@ -164,7 +92,7 @@ void http_get_task()
                     ESP_LOGE(ERRORTAG, "Unable to set socket options");
                 }
 
-                char payload[256];
+                char payload[1024];
                 char rx_buffer[1024];
 
                 if (strlen(url_params->query) > 0)
@@ -195,8 +123,6 @@ void http_get_task()
                 {
                     rx_buffer[len] = 0;
 
-                    ESP_LOGI(INFOTAG, "Received %d bytes from %s:", len,
-                             url_params->query);
                     char *pos = strchr(rx_buffer, '<');
 
                     if(pos != NULL)
@@ -214,7 +140,7 @@ void http_get_task()
                     uart_print_str_value("\r\n\e[32mPAYLOAD::\n\r\e[34m--------------\e[39m \n\r", pos, NULL);    
                     uart_clear_line();
                 }
-            }
+            } 
 
             if (sock != -1)
             {
@@ -229,6 +155,7 @@ void http_get_task()
     free(url_params->host);
     vTaskDelete(NULL);
 }
+
 
 void handle_http_get(char* host, char* query)
 {
