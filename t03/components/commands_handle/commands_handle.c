@@ -171,15 +171,10 @@ void handle_http_get(char* host, char* query)
     url_params->host = host, url_params->query = query,
 
     xQueueSend(get_url_params_queue, &url_params, portMAX_DELAY);
-    size_t hs;
-    hs = heap_caps_get_free_size(0);
-
-    printf("%d\n", hs);
 
     xTaskCreate(http_get_task, "get request", 4096, NULL, 1, NULL);
 }
 
-//////end///////////
 
 void handle_connection_status() { wifi_display_info(); }
 
@@ -376,7 +371,6 @@ void send_dht_task(void* params)
 
                     inet_ntoa_r(dest_addr.sin_addr, addr, sizeof(addr) - 1);
 
-                    char* mac_addr = "fuck";
                     char json_str[124];
 
                     uint8_t mac[6]; 
@@ -385,7 +379,6 @@ void send_dht_task(void* params)
         
                     sprintf(json_str, "{\"id\":\"%d:%d:%d:%d:%d:%d\",\"t\":\"%d\",\"h\":\"%d\"}",
                             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], dht_data[2], dht_data[0]);
-                    int json_len = strlen(json_str);
 
                     char rx_buffer[1024];
                     memset(rx_buffer, 0, 1024);
@@ -404,8 +397,6 @@ void send_dht_task(void* params)
     }
     free(url_params->host);
 }
-
-
 
 
 void handle_send_dht(char* host, char* query)

@@ -53,7 +53,7 @@ esp_err_t dns_find_by_hostname(char* host, ip_addr_t* ip_Addr)
         while (err < 0)
         {
             err = dns_gethostbyname(host, ip_Addr, NULL, NULL);
-            printf("dns err %s\n", esp_err_to_name(err));
+            ESP_LOGE(ERRORTAG, "dns err %s", esp_err_to_name(err));
             if (dns_failed_times == 0)
             {
                 return (ESP_FAIL);
@@ -100,8 +100,6 @@ void make_json_payload(char *method, char* payload, char* host, char* query, int
     }
     else
     {
-        ESP_LOGE(ERRORTAG, "VOID QUERY");
-
         sprintf(payload,
                 "%s / HTTP/1.0\r\nHost: %s\r\nContent-Length: "
                 "%d\r\nContent-Type: application/json\r\n\r\n%s\r\n",

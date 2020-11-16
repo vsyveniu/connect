@@ -41,12 +41,12 @@ void register_cmnd_set()
     };
 
     esp_console_cmd_t cmd_send_dht_conf = {
-        .command = "send_dht",
+        .command = "send-dht",
         .func = &cmd_send_dht,
     };
 
     esp_console_cmd_t cmd_stop_dht_conf = {
-        .command = "stop_dht",
+        .command = "stop-dht",
         .func = &cmd_stop_dht,
     };
 
