@@ -78,18 +78,18 @@ void wifi_ping_task(void *params)
         struct sockaddr_in dest_addr = {
         .sin_addr.s_addr = inet_addr(socket_params->ip),
         .sin_family = AF_INET,
-        //.sin_port = htons(0),
-        .sin_port = htons(socket_params->port),
+        .sin_port = htons(3000),
+        //.sin_port = htons(socket_params->port),
    
     };
 
     inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
 
         addr_family = AF_INET;
-        ip_protocol = IPPROTO_RAW;
+        ip_protocol = IPPROTO_IP;
         esp_err_t err;
 
-        int sock =  socket(addr_family, SOCK_RAW, ip_protocol);
+        int sock =  socket(addr_family, SOCK_STREAM, ip_protocol);
         if (sock < 0) {
             ESP_LOGE(ERRORTAG, "Unable to create socket: errno %d", errno);
         }
@@ -105,83 +105,45 @@ void wifi_ping_task(void *params)
 
             int32_t i = 0;
             int32_t j = socket_params->count;
-            char mhdr_buff[128];
-            //char mhdr_rx_buff[128];
-
-            struct msghdr mhdr;
-            struct iovec iov[1];
-            iov[0].iov_base = mhdr_buff;
-            iov[0].iov_len = sizeof(mhdr_buff);
-            memset(mhdr_buff, 0, sizeof(mhdr_buff));
-            struct cmsghdr *cmhdr;
-
-            
-
-      /*       struct msghdr {
-                void         *msg_name;
-                socklen_t     msg_namelen;
-                struct iovec *msg_iov;
-                int           msg_iovlen;
-                void         *msg_control;
-                socklen_t     msg_controllen;
-                int           msg_flags;
-            }; */
-    
-           
+ 
+  
             char control[1000];
             struct sockaddr_in sin;
-            //unsigned char tos;
 
-            mhdr.msg_name = &sin;
-            mhdr.msg_namelen = sizeof(sin);
-            mhdr.msg_iov = iov;
-            mhdr.msg_iovlen = 1;
-            mhdr.msg_control = &control;
-            mhdr.msg_controllen = sizeof(control);
-
- 
             while(j > 0)
-            {  
-                 
+            {   
                 char payload[11];
                 //char *payload = "PING #1";
                 sprintf(payload, "PING #%d", i);
-                sprintf(mhdr_buff, "PING #%d", i);
-                printf("%s\n", mhdr_buff);
-               //printf("%s\n", payload);
 
-               // err = send(sock, payload, strlen(payload), 0);
-
-                //err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
+                printf("%s\n", payload);
                 err = send(sock, payload, strlen(payload), 0);
                 if (err < 0) {
                     ESP_LOGE(ERRORTAG, "Error occurred during sending: errno %d", errno);
                 }
                 printf("something was sent? %d\n", err);
 
-                //int len = recvmsg(sock, &mhdr, MSG_DONTWAIT);
                 int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
                 printf("something was received? %d\n", len);
-                // Error occurred during receiving
+
                 if (len < 0) {
                     ESP_LOGE(ERRORTAG, "recv failed: errno %d", errno);
                 }
-                // Data received
+
                 else {
-                    rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
+                    rx_buffer[len] = 0; 
                     ESP_LOGI(ERRORTAG, "Received %d bytes from %s:", len, addr_str);
                     ESP_LOGI(ERRORTAG, "%s", rx_buffer);
                 }
-
                 j--;
                 i++;
                 printf("%d\n", i);
             }
-                if (sock != -1) {
-                    ESP_LOGI(ERRORTAG, "Shutting down socket and restarting...");
-                    shutdown(sock, 0);
-                    close(sock);
-                } 
+            if (sock != -1) {
+                ESP_LOGI(ERRORTAG, "Shutting down socket and restarting...");
+                shutdown(sock, 0);
+                close(sock);
+            } 
         }
     } 
     

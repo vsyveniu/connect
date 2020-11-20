@@ -135,7 +135,7 @@ int cmd_sock_ping(int argc, char** argv)
     printf("aton %d\n", aton_result);
     printf("$%s$\n", ip_copy);
 
-    if (nerrors > 0 || aton_result == 0)
+    if (nerrors > 0)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
