@@ -59,5 +59,4 @@ void app_main()
     }
 
     wifi_connect(wifi_sta_info.ssid_str, wifi_sta_info.passwd);
-
 }

@@ -103,6 +103,25 @@ int cmd_disconnect(int argc, char** argv)
     return 0;
 }
 
+
+esp_err_t ip_validate(char *ip)
+{
+    esp_err_t status = ESP_OK;
+
+    for (int i = 0; ip[i] && status == ESP_OK; ++i) {
+		if (isdigit(ip[i]) == 0 && ip[i] != '.') {
+			status = ESP_FAIL;
+		}
+	}
+	for (int i = 0; ip[i + 1] && status == ESP_OK; ++i) {
+		if (ip[i] == '.' && ip[i + 1] == '.') {
+			status = ESP_FAIL;
+		}
+	}
+    return (status);
+}
+
+
 int cmd_sock_ping(int argc, char** argv)
 {
     int8_t nerrors = 0;
@@ -130,12 +149,15 @@ int cmd_sock_ping(int argc, char** argv)
     memcpy(ip_copy, *ip->sval, ip_len);
 
     aton_result = inet_aton(ip_copy, &ip_addr);
+    esp_err_t is_valid = ip_validate(ip_copy);
+
+    printf("is_valid %d\n", is_valid);
 
     printf("errors %d\n", nerrors);
     printf("aton %d\n", aton_result);
     printf("$%s$\n", ip_copy);
 
-    if (nerrors > 0)
+    if (nerrors > 0 || is_valid == ESP_FAIL)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
