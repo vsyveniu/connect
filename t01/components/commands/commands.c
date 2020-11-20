@@ -131,8 +131,8 @@ int cmd_sock_ping(int argc, char** argv)
 
     aton_result = inet_aton(ip_copy, &ip_addr);
 
-    printf("%d\n", nerrors);
-    printf("%d\n", aton_result);
+    printf("errors %d\n", nerrors);
+    printf("aton %d\n", aton_result);
     printf("$%s$\n", ip_copy);
 
     if (nerrors > 0 || aton_result == 0)

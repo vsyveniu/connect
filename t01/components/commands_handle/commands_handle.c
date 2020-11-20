@@ -105,7 +105,6 @@ void wifi_ping_task(void *params)
 
             int32_t i = 0;
             int32_t j = socket_params->count;
-            printf("%d\n", j);
             char mhdr_buff[128];
             //char mhdr_rx_buff[128];
 
@@ -153,7 +152,6 @@ void wifi_ping_task(void *params)
 
                // err = send(sock, payload, strlen(payload), 0);
 
-
                 //err = sendmsg(sock, &mhdr, MSG_DONTWAIT);
                 err = send(sock, payload, strlen(payload), 0);
                 if (err < 0) {
@@ -175,13 +173,12 @@ void wifi_ping_task(void *params)
                     ESP_LOGI(ERRORTAG, "%s", rx_buffer);
                 }
 
-                vTaskDelay(2000 / portTICK_PERIOD_MS);
                 j--;
                 i++;
                 printf("%d\n", i);
             }
                 if (sock != -1) {
-                    ESP_LOGE(ERRORTAG, "Shutting down socket and restarting...");
+                    ESP_LOGI(ERRORTAG, "Shutting down socket and restarting...");
                     shutdown(sock, 0);
                     close(sock);
                 } 
