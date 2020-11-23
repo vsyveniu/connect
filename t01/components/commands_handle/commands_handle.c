@@ -61,6 +61,8 @@ void wifi_ping_task(void* params)
         int addr_family;
         int ip_protocol;
 
+         memset(addr_str, 0, 128);
+
         struct sockaddr_in dest_addr = {
             .sin_addr.s_addr = inet_addr(socket_params->ip),
             .sin_family = AF_INET,

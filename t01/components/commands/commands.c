@@ -139,15 +139,11 @@ int cmd_sock_ping(int argc, char** argv)
 
     nerrors = arg_parse(argc, argv, argtable);
 
-    struct in_addr ip_addr[1];
-
-    int aton_result = 0;
     int ip_len = strlen(*ip->sval);
     char *ip_copy = calloc(ip_len + 1, sizeof(char));
 
     memcpy(ip_copy, *ip->sval, ip_len);
 
-    aton_result = inet_aton(ip_copy, &ip_addr);
     esp_err_t is_valid = ip_validate(ip_copy);
     if (nerrors > 0 || is_valid == ESP_FAIL)
     {
