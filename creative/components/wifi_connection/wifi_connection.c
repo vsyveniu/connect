@@ -54,6 +54,11 @@ esp_err_t wifi_scan_aps()
             }
         }
 
+        size_t heap = 0;
+        heap = heap_caps_get_free_size(0);
+
+        printf(" heap left %d\n", heap);
+
         UBaseType_t is_filled = 0;
         
         is_filled = uxQueueMessagesWaiting(wifi_scan_queue);
@@ -128,6 +133,19 @@ esp_err_t wifi_ap_init()
 
     wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT();
 
+/*     wifi_config_t wifi_ap_config = {
+         .ap = {
+             .ssid           = "FUCK",
+             .ssid_len       = strlen("FUCK"),
+             .channel        = 1,
+             .password       = "666",
+             .max_connection = 10,
+             .authmode       = WIFI_AUTH_WPA_WPA2_PSK
+         },
+    };
+   
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_ap_config)); */
+
     err = esp_wifi_init(&wifi_config);
     if (err != ESP_OK)
     {
@@ -150,6 +168,7 @@ esp_err_t wifi_ap_init()
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
+
     printf("passwd %s\n", passwd);
 
     if(strlen(ssid_name) > 0)

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="/app.css">
+    <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"> -->
+        <link rel="stylesheet" type="text/css" href="/bulma.min.css">
+    </head>
+    <body>
+        <article class="container is-fluid">
+            <div class="hero is-primary">
+                <div class="hero-body">
+                    <h1 class="title">BEST LIST OF NETWORKS</h1>
+                </div>
+            </div>
+            <div class="container is-fluid scan_container">
+                <section class="box" id="scan_list">@scanlist@
+                    <div class="tag nets_element is-size-5-desktop is-size-3-touch"> element</div>
+                </section>
+            </div>
+            <div class="button_container">
+                <button class="button is-info is-fullwidth is-size-5-desktop" id="scan_button">scan</button>
+                <button class="button is-success is-fullwidth is-size-5-desktop" id="connect_button">connect</button>
+            </div>
+            <div id="loading" class="is-size-4-desktop">
+                Loading...
+            </div>
+            <div id="busy" class="is-size-4-desktop">
+                Scan is too busy, try again later
+            </div>
+        </article>
+    <script type="text/javascript" src="/app.js"></script>
+    </body>
+</html>

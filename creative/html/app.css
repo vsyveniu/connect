@@ -1,0 +1,57 @@
+.headline 
+{
+    margin: 0 auto;
+}
+.scan_container
+{
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+.scan_list .nets_element
+{
+    cursor: pointer;
+}
+.button_container
+{
+    display: flex;
+    width: 30%;
+    margin: 0 auto;
+    margin-top: 20px;
+    justify-content: center;
+}
+.nets_element
+{
+    margin-top: 5px;
+    margin-left: 5px;
+}
+#loading
+{
+    display: none;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+}
+#loading.is-visible
+{
+    display: flex;
+}
+#busy
+{
+    display: none;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+}
+#busy.is-visible
+{
+    display: flex;
+}
+#connect_button
+{
+    margin-left: 20px;
+}

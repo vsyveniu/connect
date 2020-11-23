@@ -18,6 +18,8 @@
 #include "esp_err.h"
 #include "http_server.h"
 
+/* static const char* ERRORTAG = "error: ";
+static const char* INFOTAG = "info: "; */
 
 void app_main()
 {
