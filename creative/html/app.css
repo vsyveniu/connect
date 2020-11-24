@@ -12,9 +12,26 @@
     align-items: center;
 
 }
-.scan_list .nets_element
+.net
 {
     cursor: pointer;
+    margin-top: 5px;
+    margin-left: 5px;
+    font-size: 1em!important;
+    user-select: none;
+}
+.input_container
+{
+    display: none;
+    width: 50%;
+    justify-content: center;
+    margin: 0 auto;
+    margin-top: 20px;
+
+}
+.input_container.is-v-on
+{
+    display: flex;
 }
 .button_container
 {
@@ -24,11 +41,6 @@
     margin-top: 20px;
     justify-content: center;
 }
-.nets_element
-{
-    margin-top: 5px;
-    margin-left: 5px;
-}
 #loading
 {
     display: none;
@@ -36,7 +48,7 @@
     justify-content: center;
     margin-top: 15px;
 }
-#loading.is-visible
+#loading.is-v-on
 {
     display: flex;
 }
@@ -47,11 +59,36 @@
     justify-content: center;
     margin-top: 15px;
 }
-#busy.is-visible
+#busy.is-v-on
 {
     display: flex;
+}
+#status{
+    visibility: hidden;
+}
+#status.is-v-on
+{
+    visibility: visible;
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 20px;
 }
 #connect_button
 {
     margin-left: 20px;
+}
+
+@media all and (max-width: 1024px)
+{
+    .net
+    {
+        font-size: 1em!important;
+    }
+}
+@media all and (max-width: 768px)
+{
+    .net
+    {
+        font-size: 1.25em!important;
+    }
 }

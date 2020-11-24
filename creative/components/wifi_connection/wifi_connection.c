@@ -37,21 +37,28 @@ esp_err_t wifi_scan_aps()
 
         int8_t i;
 
-        char ret[1048];
-        memset(ret, 0, 1048);
-        char *tag_open = "<div class=\"tag nets_element is-size-5-desktop is-size-3-touch\">";
+        char ret[1024];
+        memset(ret, 0, 1024);
+        char *tag_open = "<div class=\"tag net\">";
         char *tag_close = "</div>";
         int tag_open_len = strlen(tag_open);
         int tag_close_len = strlen(tag_close);
         char *p_index = ret;
+        int aps_len = 0;
 
         for (i = 0; i < aps_count; i++)
         {
-            if(!strstr(ret, (char *)p_wifi_records_list[i].ssid))
+            int ap_len = strlen((char *)p_wifi_records_list[i].ssid);
+        
+            if(!strstr(ret, (char *)p_wifi_records_list[i].ssid) && aps_len + ap_len < 1024)
             {
                 sprintf(p_index, "%s%s%s", tag_open, p_wifi_records_list[i].ssid, tag_close);
-                p_index = p_index + tag_open_len + strlen((char *)p_wifi_records_list[i].ssid) + tag_close_len;
+                p_index = p_index + tag_open_len + ap_len + tag_close_len;
+                aps_len += tag_open_len + ap_len + tag_open_len;
+                 printf("aps len %d\n", aps_len);    
             }
+            
+           
         }
 
         size_t heap = 0;
@@ -266,6 +273,7 @@ void wifi_info_update_ssid(char *ssid, char *passwd)
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
+    wifi_sta_info->ssid_str = ssid;
     wifi_sta_info->ssid_str = ssid;
     wifi_sta_info->passwd = passwd;
 

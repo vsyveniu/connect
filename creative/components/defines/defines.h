@@ -25,6 +25,8 @@ typedef struct wifi_sta_info_t
     char* state;
     char* ssid_str;
     char* passwd;
+    char  ssid_crutch[32];
+    char  passwd_crutch[32];
     char* fallback_ssid;
     char* fallback_passwd;
     char* ip;

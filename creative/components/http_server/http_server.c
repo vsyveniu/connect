@@ -142,13 +142,14 @@ esp_err_t get_asset_handler(httpd_req_t* req)
     return ESP_OK;
 }
 
+
 esp_err_t post_handler(httpd_req_t* req)
 {
-    char content[100];
+    char content[512];
+    memset(content, 0, 512);
     char *resp;
 
     size_t recv_size = sizeof(content);
-
     int ret = httpd_req_recv(req, content, recv_size);
 
     if (ret <= 0)
@@ -169,18 +170,90 @@ esp_err_t post_handler(httpd_req_t* req)
         
         if (is_filled)
         {
-            char ret[1048];
+            char response[1048];
 
-            xQueuePeek(wifi_scan_queue, &ret, 10);
+            xQueuePeek(wifi_scan_queue, &response, 10);
            
-            httpd_resp_send(req, ret, HTTPD_RESP_USE_STRLEN);
+            httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
         }
     }
     else
     {
         resp = "Can't scan";
     }
-    
+    if(strstr(content, "connect"))
+    {
+        char passwd_str[32];
+        char ssid_str[32];
+
+        printf("content %s\n", content);
+        char *name_field_start = NULL;
+        name_field_start = strstr(content, "ssid");
+        if(name_field_start)
+        {
+            char *ssid = NULL;
+            ssid = strstr(name_field_start, "\n\r");
+            if(ssid)
+            {
+                
+                memset(ssid_str, 0, 32);
+                int i = 0;
+                while(*ssid == '\n' || *ssid == '\r')
+                {
+                    ssid++;
+                }
+                while(ssid[i] != '\n')
+                {
+                    i++;
+                }
+                memcpy(ssid_str, ssid, i);
+                ssid_str[i - 1] = '\0';
+            
+            }
+        }
+        char *passwd_field_start = NULL;
+        passwd_field_start = strstr(content, "passwd");
+        if(passwd_field_start)
+        {
+            char *passwd = NULL;
+            passwd = strstr(passwd_field_start, "\n\r");
+            if(passwd)
+            {
+               
+                memset(passwd_str, 0, 32);
+                int i = 0;
+                while(*passwd == '\n' || *passwd == '\r')
+                {
+                    passwd++;
+                }
+                while(passwd[i] != '\n')
+                {
+                    i++;
+                }
+                memcpy(passwd_str, passwd, i);
+                passwd_str[i - 1] = '\0';
+                printf("passwd in parse $%s$\n", passwd_str);
+            }
+        }
+
+         wifi_info_update_ssid(ssid_str, passwd_str);   
+         esp_wifi_disconnect();
+         httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+         printf("ssid $%s$\n", ssid_str);
+         printf("passwd $%s$\n", passwd_str);
+         if(strlen(passwd_str) > 0)
+         {
+              wifi_connect(ssid_str, passwd_str);
+         }
+         else
+         {
+              wifi_connect(ssid_str, "");
+         }
+    }
+    else
+    {
+        resp = "can't connect";
+    }
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
@@ -224,6 +297,8 @@ httpd_uri_t uri_post = {
 httpd_handle_t http_server_init(void)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    config.stack_size = 6098;
 
     httpd_handle_t server = NULL;
 
