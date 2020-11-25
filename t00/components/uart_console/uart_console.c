@@ -32,6 +32,7 @@ void cmd_instance_task(void *pvParams)
     int ret               = 0;
     int is_first          = 1;
     esp_err_t console_ret = 0;
+    uint8_t backspace[4] = {0x08, 27, '[', 'P'};
 
     while (true)
     {
@@ -54,6 +55,32 @@ void cmd_instance_task(void *pvParams)
             if (buff[0] == 13)
             {
                 uart_saved->p_saved = NULL;
+                int i = 0;
+                char *p_index;
+                char *p_last;
+          /*       p_index = str;
+                p_last = &str[strlen(str)] - 1;
+                while (*p_index == ' ')
+                {
+                    p_index++;
+                }
+                p_last--;
+                while (*p_last == ' ')
+                {
+                    p_last--;
+                    printf("%s\n", "sf");
+                }
+                p_last += 1;
+                *p_last = '\0'; */
+               while(i < strlen(str))
+               {
+                   if(!isprint(str[i]))
+                   {
+                       str[i] = ' ';
+                   }
+                   i++;
+               }
+                printf("$%s$\n", str);
                 xQueueOverwrite(uart_save_input_queue, &uart_saved);
                 console_ret = esp_console_run(str, &ret);
                 if (console_ret == ESP_ERR_INVALID_ARG || i == 0)
@@ -89,9 +116,10 @@ void cmd_instance_task(void *pvParams)
                 j = 0;
                 if (buff[0] == 127 && i > 0)
                 {
-                    uart_write_bytes(UART_NUMBER, "\b", 1);
-                    uart_write_bytes(UART_NUMBER, " ", 1);
-                    uart_write_bytes(UART_NUMBER, "\b", 1);
+                    uart_write_bytes(UART_NUMBER, backspace, 4);
+                  /*    uart_write_bytes(UART_NUMBER, "\b", 1);
+                   uart_write_bytes(UART_NUMBER, 0, 1);
+                    uart_write_bytes(UART_NUMBER, "\b", 1); */
                     i--;
                     str[i] = buff[j];
                     j++;
