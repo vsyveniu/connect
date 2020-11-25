@@ -46,7 +46,6 @@ void butt1_pushed()
 					count++;
 				}				
 			}
-
             wifi_switch_params_s wifi_switch_params[1];
             UBaseType_t is_filled = 0;
 

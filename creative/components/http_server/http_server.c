@@ -54,14 +54,12 @@ esp_err_t get_handler(httpd_req_t* req)
             {
                 if(strstr( lineRead, "@scanlist@"))
                 {
-        
                     char *p_content_continue = strrchr(lineRead, '<');
                     char *p_content_start = strtok(lineRead, "@");
 
                     httpd_resp_sendstr_chunk(req, p_content_start);
                     httpd_resp_sendstr_chunk(req, ret);
                     httpd_resp_sendstr_chunk(req, p_content_continue);
-                   
                 }
                 else
                 {
@@ -141,7 +139,6 @@ esp_err_t get_asset_handler(httpd_req_t* req)
 
     return ESP_OK;
 }
-
 
 esp_err_t post_handler(httpd_req_t* req)
 {

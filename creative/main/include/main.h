@@ -5,7 +5,6 @@
 #include "esp_err.h"
 #include <stdio.h>
 #include "freertos/semphr.h"
-
 #include "wifi_events.h"
 #include "nvs_flash.h"
 

@@ -113,17 +113,14 @@ function connect()
                     status.classList.add("is-v-on", "is-success");
                     status.innerHTML = "Try to connect to selected AP. If you connected to device via STA mode this page will be no longer operational. Reloading...";
                     setTimeout(() => status.classList.remove("is-v-on", "is-success"), 2000);
-                    location.reload();
-                    
+                    location.reload();  
                 }
                 else
                 {
                     status.classList.add("is-v-on", "is-danger");
                     status.innerHTML = "Something terrible was happend :(";
-                    setTimeout(() => status.classList.remove("is-v-on", "is-danger"), 2000);
-                    
-                }
-                
+                    setTimeout(() => status.classList.remove("is-v-on", "is-danger"), 2000); 
+                }   
             }
         }
     }

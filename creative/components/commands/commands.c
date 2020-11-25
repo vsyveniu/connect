@@ -66,7 +66,7 @@ int cmd_ssid_set(int argc, char** argv)
 
     nerrors = arg_parse(argc, argv, argtable);
 
-    if (nerrors > 0)
+    if (nerrors > 0 || strlen(*ssid->sval) > 32 || strlen(*passwd->sval) > 63)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
@@ -90,7 +90,7 @@ int cmd_wifi_params_set(int argc, char** argv)
 
     nerrors = arg_parse(argc, argv, argtable);
 
-    if (nerrors > 0)
+    if (nerrors > 0 || strlen(*ssid->sval) > 32 || strlen(*passwd->sval) > 63)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

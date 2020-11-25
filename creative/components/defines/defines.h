@@ -23,10 +23,10 @@ typedef struct wifi_sta_info_t
     int8_t rssi;
     uint8_t channel;
     char* state;
-    char ssid_str[32];
-    char passwd[63];
-    char fallback_ssid[32];
-    char fallback_passwd[63];
+    char ssid_str[33];
+    char passwd[64];
+    char fallback_ssid[33];
+    char fallback_passwd[64];
     char* ip;
     bool is_connected;
 
