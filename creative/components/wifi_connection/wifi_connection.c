@@ -37,21 +37,27 @@ esp_err_t wifi_scan_aps()
 
         int8_t i;
 
-        char ret[1048];
-        memset(ret, 0, 1048);
-        char *tag_open = "<div class=\"tag nets_element is-size-5-desktop is-size-3-touch\">";
+        char ret[1024];
+        memset(ret, 0, 1024);
+        char *tag_open = "<div class=\"tag net\">";
         char *tag_close = "</div>";
         int tag_open_len = strlen(tag_open);
         int tag_close_len = strlen(tag_close);
         char *p_index = ret;
+        int aps_len = 0;
 
         for (i = 0; i < aps_count; i++)
         {
-            if(!strstr(ret, (char *)p_wifi_records_list[i].ssid))
+            int ap_len = strlen((char *)p_wifi_records_list[i].ssid);
+        
+            if(!strstr(ret, (char *)p_wifi_records_list[i].ssid) && aps_len + ap_len < 1024)
             {
                 sprintf(p_index, "%s%s%s", tag_open, p_wifi_records_list[i].ssid, tag_close);
-                p_index = p_index + tag_open_len + strlen((char *)p_wifi_records_list[i].ssid) + tag_close_len;
+                p_index = p_index + tag_open_len + ap_len + tag_close_len;
+                aps_len += tag_open_len + ap_len + tag_open_len;
+                 printf("aps len %d\n", aps_len);    
             }
+            
         }
 
         UBaseType_t is_filled = 0;
@@ -109,48 +115,12 @@ esp_err_t wifi_init()
     return (ESP_OK);
 }
 
-esp_err_t wifi_ap_init()
-{
-   esp_netif_init();
-
-    esp_err_t err;
-    err = esp_event_loop_create_default();
-
-    if (err != ESP_OK)
-    {
-        printf("%s %sn", "couldn't create default event loop",
-               esp_err_to_name(err));
-        return (err);
-    }
-
-    esp_netif_create_default_wifi_ap();
-    
-
-    wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT();
-
-    err = esp_wifi_init(&wifi_config);
-    if (err != ESP_OK)
-    {
-        printf("%s %s\n", "couldn't init wi-fi module", esp_err_to_name(err));
-        return (err);
-    }
-
-    esp_wifi_set_mode(WIFI_MODE_AP);
-    err = esp_wifi_start();
-    if (err != ESP_OK)
-    {
-        printf("%s %s\n", "couldn't start wifi", esp_err_to_name(err));
-        return (err);
-    }
-    /* esp_netif_ip_info_t netif_info;
-    esp_netif_get_ip_info(netif, &netif_info); */
-
-    return (ESP_OK);
-}
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
-    printf("passwd %s\n", passwd);
+
+    printf("passwd in connection %s\n", passwd);
+    printf("ssid in connection %s\n", ssid_name);
 
     if(strlen(ssid_name) > 0)
     {
@@ -247,9 +217,11 @@ void wifi_info_update_ssid(char *ssid, char *passwd)
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
-    wifi_sta_info->ssid_str = ssid;
-    wifi_sta_info->passwd = passwd;
-
+    memcpy(wifi_sta_info->ssid_str, ssid, strlen(ssid));
+    wifi_sta_info->ssid_str[strlen(ssid)] = '\0';  
+    memcpy(wifi_sta_info->passwd, passwd, strlen(passwd));
+    wifi_sta_info->passwd[strlen(passwd)] = '\0';  
+    
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
 }
 
@@ -321,8 +293,11 @@ esp_err_t   wifi_get_nvs_data(wifi_sta_info_s *wifi_sta_info)
         }
         
     }
-    wifi_sta_info->ssid_str = ssid;
-    wifi_sta_info->passwd = passwd;
+
+    memcpy(wifi_sta_info->ssid_str, ssid, strlen(ssid));
+    wifi_sta_info->ssid_str[strlen(ssid)] = '\0';  
+    memcpy(wifi_sta_info->passwd, passwd, strlen(passwd));
+    wifi_sta_info->passwd[strlen(passwd)] = '\0';  
 
     nvs_close(wifi_nvs_handle);
 

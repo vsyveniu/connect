@@ -1,0 +1,95 @@
+.headline 
+{
+    margin: 0 auto;
+}
+.scan_container
+{
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+.net
+{
+    cursor: pointer;
+    margin-top: 5px;
+    margin-left: 5px;
+    font-size: 1em!important;
+    user-select: none;
+}
+.input_container
+{
+    display: none;
+    width: 50%;
+    justify-content: center;
+    margin: 0 auto;
+    margin-top: 20px;
+
+}
+.input_container.is-v-on
+{
+    display: flex;
+}
+.button_container
+{
+    display: flex;
+    width: 30%;
+    margin: 0 auto;
+    margin-top: 20px;
+    justify-content: center;
+}
+#loading
+{
+    display: none;
+    width: 50%;
+    margin: 0 auto;
+    justify-content: center;
+    margin-top: 20px;
+}
+#loading.is-v-on
+{
+    display: flex;
+}
+#busy
+{
+    display: none;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+}
+#busy.is-v-on
+{
+    display: flex;
+}
+#status{
+    visibility: hidden;
+}
+#status.is-v-on
+{
+    visibility: visible;
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+#connect_button
+{
+    margin-left: 20px;
+}
+
+@media all and (max-width: 1024px)
+{
+    .net
+    {
+        font-size: 1em!important;
+    }
+}
+@media all and (max-width: 768px)
+{
+    .net
+    {
+        font-size: 1.25em!important;
+    }
+}
