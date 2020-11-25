@@ -58,13 +58,7 @@ esp_err_t wifi_scan_aps()
                  printf("aps len %d\n", aps_len);    
             }
             
-           
         }
-
-        size_t heap = 0;
-        heap = heap_caps_get_free_size(0);
-
-        printf(" heap left %d\n", heap);
 
         UBaseType_t is_filled = 0;
         
@@ -121,62 +115,12 @@ esp_err_t wifi_init()
     return (ESP_OK);
 }
 
-esp_err_t wifi_ap_init()
-{
-   esp_netif_init();
-
-    esp_err_t err;
-    err = esp_event_loop_create_default();
-
-    if (err != ESP_OK)
-    {
-        printf("%s %sn", "couldn't create default event loop",
-               esp_err_to_name(err));
-        return (err);
-    }
-
-    esp_netif_create_default_wifi_ap();
-    
-
-    wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT();
-
-/*     wifi_config_t wifi_ap_config = {
-         .ap = {
-             .ssid           = "FUCK",
-             .ssid_len       = strlen("FUCK"),
-             .channel        = 1,
-             .password       = "666",
-             .max_connection = 10,
-             .authmode       = WIFI_AUTH_WPA_WPA2_PSK
-         },
-    };
-   
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_ap_config)); */
-
-    err = esp_wifi_init(&wifi_config);
-    if (err != ESP_OK)
-    {
-        printf("%s %s\n", "couldn't init wi-fi module", esp_err_to_name(err));
-        return (err);
-    }
-
-    esp_wifi_set_mode(WIFI_MODE_AP);
-    err = esp_wifi_start();
-    if (err != ESP_OK)
-    {
-        printf("%s %s\n", "couldn't start wifi", esp_err_to_name(err));
-        return (err);
-    }
-    /* esp_netif_ip_info_t netif_info;
-    esp_netif_get_ip_info(netif, &netif_info); */
-
-    return (ESP_OK);
-}
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
 
-    printf("passwd %s\n", passwd);
+    printf("passwd in connection %s\n", passwd);
+    printf("ssid in connection %s\n", ssid_name);
 
     if(strlen(ssid_name) > 0)
     {
@@ -273,10 +217,11 @@ void wifi_info_update_ssid(char *ssid, char *passwd)
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
-    wifi_sta_info->ssid_str = ssid;
-    wifi_sta_info->ssid_str = ssid;
-    wifi_sta_info->passwd = passwd;
-
+    memcpy(wifi_sta_info->ssid_str, ssid, strlen(ssid));
+    wifi_sta_info->ssid_str[strlen(ssid)] = '\0';  
+    memcpy(wifi_sta_info->passwd, passwd, strlen(passwd));
+    wifi_sta_info->passwd[strlen(passwd)] = '\0';  
+    
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
 }
 
@@ -348,8 +293,11 @@ esp_err_t   wifi_get_nvs_data(wifi_sta_info_s *wifi_sta_info)
         }
         
     }
-    wifi_sta_info->ssid_str = ssid;
-    wifi_sta_info->passwd = passwd;
+
+    memcpy(wifi_sta_info->ssid_str, ssid, strlen(ssid));
+    wifi_sta_info->ssid_str[strlen(ssid)] = '\0';  
+    memcpy(wifi_sta_info->passwd, passwd, strlen(passwd));
+    wifi_sta_info->passwd[strlen(passwd)] = '\0';  
 
     nvs_close(wifi_nvs_handle);
 

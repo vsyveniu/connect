@@ -94,7 +94,6 @@ function connect()
 
     if(ssid)
     {
-        //let passwd = document.getElementById("pass_input");
         formdata.append("method", "connect");
         formdata.append("ssid", ssid.innerHTML);
         if(passwd.value)
@@ -109,11 +108,12 @@ function connect()
         {
             if (xhr.readyState == 4) {
                 loading.classList.remove("is-v-on");
-                if(this.responseText)
+                if(this.responseText == 'OK')
                 {
                     status.classList.add("is-v-on", "is-success");
-                    status.innerHTML = "Connected!";
+                    status.innerHTML = "Try to connect to selected AP. If you connected to device via STA mode this page will be no longer operational. Reloading...";
                     setTimeout(() => status.classList.remove("is-v-on", "is-success"), 2000);
+                    location.reload();
                     
                 }
                 else
@@ -121,7 +121,6 @@ function connect()
                     status.classList.add("is-v-on", "is-danger");
                     status.innerHTML = "Something terrible was happend :(";
                     setTimeout(() => status.classList.remove("is-v-on", "is-danger"), 2000);
-                   
                     
                 }
                 

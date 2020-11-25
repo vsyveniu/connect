@@ -158,7 +158,6 @@ esp_err_t post_handler(httpd_req_t* req)
         {
             httpd_resp_send_408(req);
         }
-
         return ESP_FAIL;
     }
     if(strstr(content, "scan"))
@@ -171,10 +170,9 @@ esp_err_t post_handler(httpd_req_t* req)
         if (is_filled)
         {
             char response[1048];
-
             xQueuePeek(wifi_scan_queue, &response, 10);
-           
             httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
+            return ESP_OK;
         }
     }
     else
@@ -183,8 +181,11 @@ esp_err_t post_handler(httpd_req_t* req)
     }
     if(strstr(content, "connect"))
     {
+        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
         char passwd_str[32];
         char ssid_str[32];
+        memset(passwd_str, 0, 32);
+        memset(ssid_str, 0, 32);
 
         printf("content %s\n", content);
         char *name_field_start = NULL;
@@ -196,7 +197,6 @@ esp_err_t post_handler(httpd_req_t* req)
             if(ssid)
             {
                 
-                memset(ssid_str, 0, 32);
                 int i = 0;
                 while(*ssid == '\n' || *ssid == '\r')
                 {
@@ -220,7 +220,6 @@ esp_err_t post_handler(httpd_req_t* req)
             if(passwd)
             {
                
-                memset(passwd_str, 0, 32);
                 int i = 0;
                 while(*passwd == '\n' || *passwd == '\r')
                 {
@@ -235,20 +234,18 @@ esp_err_t post_handler(httpd_req_t* req)
                 printf("passwd in parse $%s$\n", passwd_str);
             }
         }
-
-         wifi_info_update_ssid(ssid_str, passwd_str);   
          esp_wifi_disconnect();
-         httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
          printf("ssid $%s$\n", ssid_str);
          printf("passwd $%s$\n", passwd_str);
          if(strlen(passwd_str) > 0)
          {
-              wifi_connect(ssid_str, passwd_str);
+             wifi_connect(ssid_str, passwd_str);
          }
          else
          {
               wifi_connect(ssid_str, "");
          }
+         return ESP_OK;      
     }
     else
     {

@@ -24,8 +24,10 @@ static void wifi_connect_handler(void *handler_args, esp_event_base_t base,
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
+
     memcpy(wifi_sta_info->ssid, event_data->ssid, 32);
-    wifi_sta_info->ssid_str             = wifi_ssid_to_str(event_data->ssid);
+    memcpy(wifi_sta_info->ssid_str, wifi_ssid_to_str(event_data->ssid), strlen(wifi_ssid_to_str(event_data->ssid)));
+    //wifi_sta_info->ssid_str             = wifi_ssid_to_str(event_data->ssid);
     wifi_sta_info->channel              = event_data->channel;
     wifi_sta_info->state                = "CONNECTED";
     wifi_sta_info->rssi                 = wifi_ap_info.rssi;
@@ -153,11 +155,16 @@ void wifi_try_reconnect()
                 UART_NUMBER,
                 "Gonna try to connect to previous successfull access point");
             uart_clear_line();
+            printf("fallback %s\n", wifi_sta_info->fallback_ssid);
+            printf("fallback %s\n", wifi_sta_info->fallback_passwd);
 
             // set passwd as fallback cause if not and successfully reconenct to
             // fallback, the passwd field will be incorrect from cli passwd
             // update
-            wifi_sta_info->passwd = wifi_sta_info->fallback_passwd;
+            memcpy(wifi_sta_info->passwd, wifi_sta_info->fallback_passwd, strlen(wifi_sta_info->fallback_passwd));
+            wifi_sta_info->passwd[strlen(wifi_sta_info->fallback_passwd)] = '\0';  
+
+            //wifi_sta_info->passwd = wifi_sta_info->fallback_passwd;
             wifi_connect(wifi_sta_info->fallback_ssid,
                          wifi_sta_info->fallback_passwd);
         }
@@ -236,6 +243,7 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
 
     sprintf(ip_buff, IPSTR, IP2STR(&event->ip_info.ip));
 
+
     nvs_open("wifi_store", NVS_READWRITE, &wifi_nvs_handle);
     esp_err_t err;
     err = nvs_set_str(wifi_nvs_handle, "wifi_ssid", wifi_sta_info->ssid_str);
@@ -255,9 +263,17 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
     }
     nvs_close(wifi_nvs_handle);
 
-    wifi_sta_info->ip              = ip_buff;
-    wifi_sta_info->fallback_ssid   = wifi_sta_info->ssid_str;
-    wifi_sta_info->fallback_passwd = wifi_sta_info->passwd;
+    printf("got ip %s\n", wifi_sta_info->ssid_str);
+    printf("got ip %s\n", wifi_sta_info->passwd);
+
+     wifi_sta_info->ip              = ip_buff;
+    /*wifi_sta_info->fallback_ssid   = wifi_sta_info->ssid_str;
+    wifi_sta_info->fallback_passwd = wifi_sta_info->passwd; */
+    memcpy(wifi_sta_info->fallback_ssid, wifi_sta_info->ssid_str, strlen(wifi_sta_info->ssid_str));
+    wifi_sta_info->fallback_ssid[strlen(wifi_sta_info->ssid_str)] = '\0';
+    memcpy(wifi_sta_info->fallback_passwd, wifi_sta_info->passwd, strlen(wifi_sta_info->passwd));
+    wifi_sta_info->fallback_passwd[strlen(wifi_sta_info->passwd)] = '\0';
+
 
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
 

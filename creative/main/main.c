@@ -103,8 +103,6 @@ void app_main()
         .wifi_reconnect_count = 0,
         .state = "DISCONNECTED",
         .ssid = "",
-        .passwd = "",
-        .ssid_str = "",
         .fallback_ssid = "",
         .fallback_passwd = "",
         .channel = 0,
@@ -113,6 +111,10 @@ void app_main()
         .is_connected = false,
     };
 
+    memset(wifi_sta_info.fallback_ssid, 0, 32);
+    memset(wifi_sta_info.fallback_passwd, 0, 63); 
+    memset(wifi_sta_info.passwd, 0, 63); 
+    memset(wifi_sta_info.ssid_str, 0, 32); 
     wifi_get_nvs_data(&wifi_sta_info);
 
     wifi_info_queue = xQueueCreate(1, sizeof(wifi_sta_info_s));

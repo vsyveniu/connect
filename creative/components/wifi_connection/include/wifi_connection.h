@@ -18,7 +18,6 @@
 #include "freertos/semphr.h"
 
 esp_err_t wifi_init();
-esp_err_t wifi_ap_init();
 esp_err_t wifi_connect(char *ssid_name, char *passwd);
 esp_err_t wifi_scan_aps();
 void wifi_display_info();

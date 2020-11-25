@@ -44,9 +44,10 @@
 #loading
 {
     display: none;
-    width: 100%;
+    width: 50%;
+    margin: 0 auto;
     justify-content: center;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 #loading.is-v-on
 {

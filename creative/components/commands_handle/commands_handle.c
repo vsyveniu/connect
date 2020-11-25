@@ -4,8 +4,6 @@
 #include <sys/time.h>
 #include "sntp.h"
 #include "argtable3/argtable3.h"
-
-//#include <sys/socket.h>
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
@@ -53,14 +51,13 @@ void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
         passwd_copy = "";
     }
 
-/*     memcpy(ssid_copy, *ssid->sval, ssid_len);
-    memcpy(passwd_copy, *passwd->sval, passwd_len); */
-
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
-    wifi_sta_info->ssid_str = ssid_copy;
-    wifi_sta_info->passwd = passwd_copy;
+    memcpy(wifi_sta_info->ssid_str, ssid_copy, strlen((char *)ssid));
+    wifi_sta_info->ssid_str[strlen((char *)ssid)] = '\0';  
+    memcpy(wifi_sta_info->passwd, passwd_copy, strlen((char *)passwd));
+    wifi_sta_info->passwd[strlen((char *)passwd)] = '\0';  
     wifi_sta_info->wifi_reconnect_count = 0;
 
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
