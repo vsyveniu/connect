@@ -100,7 +100,8 @@ function connect()
         {
             formdata.append("passwd", passwd.value);
         }
-        xhr.open('POST', baseUrl, true);
+        xhr.open('POST', baseUrl + 'connect', true);
+        xhr.timeout = 2000;
         xhr.send(formdata);
         loading.classList.add("is-v-on", "is-primary");
         loading.innerHTML = "Connection...";
@@ -118,8 +119,9 @@ function connect()
                 else
                 {
                     status.classList.add("is-v-on", "is-danger");
-                    status.innerHTML = "Something terrible was happend :(";
-                    setTimeout(() => status.classList.remove("is-v-on", "is-danger"), 2000); 
+                    status.innerHTML = "You was disconnected. Perhaps you performed wifi connection into different network. At last something terrible could happend :(";
+                    setTimeout(() => status.classList.remove("is-v-on", "is-danger"), 4000); 
+                    location.reload();  
                 }   
             }
         }
