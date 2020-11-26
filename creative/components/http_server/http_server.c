@@ -7,7 +7,6 @@
 
 esp_err_t get_handler(httpd_req_t* req)
 {
-
     esp_vfs_spiffs_conf_t config = {
         .base_path = "/spiffs",
         .partition_label = NULL,
@@ -183,8 +182,6 @@ esp_err_t post_handler(httpd_req_t* req)
         char ssid_str[32];
         memset(passwd_str, 0, 32);
         memset(ssid_str, 0, 32);
-
-        printf("content %s\n", content);
         char *name_field_start = NULL;
         name_field_start = strstr(content, "ssid");
         if(name_field_start)
@@ -228,12 +225,10 @@ esp_err_t post_handler(httpd_req_t* req)
                 }
                 memcpy(passwd_str, passwd, i);
                 passwd_str[i - 1] = '\0';
-                printf("passwd in parse $%s$\n", passwd_str);
             }
         }
          esp_wifi_disconnect();
-         printf("ssid $%s$\n", ssid_str);
-         printf("passwd $%s$\n", passwd_str);
+
          if(strlen(passwd_str) > 0)
          {
              wifi_connect(ssid_str, passwd_str);
@@ -292,7 +287,11 @@ httpd_handle_t http_server_init(void)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
-    config.stack_size = 6098;
+    config.stack_size = 12098;
+    config.lru_purge_enable = true;
+    config.max_open_sockets = 2;
+    config.send_wait_timeout = 4;
+    config.recv_wait_timeout = 4;
 
     httpd_handle_t server = NULL;
 
