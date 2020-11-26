@@ -150,8 +150,6 @@ esp_err_t wifi_ap_init()
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
-    printf("passwd %s\n", passwd);
-
     if(strlen(ssid_name) > 0)
     {
         wifi_config_t sta_config = {.sta = {
