@@ -94,6 +94,7 @@ void wifi_ping_task(void* params)
             if (err != 0)
             {
                 ESP_LOGE(ERRORTAG, "Socket unable to connect: errno %d", errno);
+                break;
             }
             else
             {
