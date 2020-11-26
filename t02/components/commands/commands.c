@@ -35,7 +35,7 @@ void register_cmnd_set()
     };
 
     esp_console_cmd_t cmd_http_get_conf = {
-        .command = "http_get",
+        .command = "http-get",
         .func = &cmd_http_get,
     };
 
@@ -109,18 +109,14 @@ int cmd_http_get(int argc, char** argv)
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
         return 0;
     }
-    printf("%c\n", *url->sval[0]);
     if(*url->sval[0] == '/')
     {
         uart_print_str(UART_NUMBER, "\n\rdo you want some file, ya boy? I can give you nothing but fuck off\n\r");
         printf("%s\n", "FUUUUCK");
     }
-    printf("%s\n", *url->sval);
     char *host = calloc(strlen(*url->sval) + 1, sizeof(char));
-    //char *url_full = calloc(strlen(*url->sval) + 1, sizeof(char));
 
     memcpy(host, *url->sval, strlen(*url->sval));
-    //memcpy(url_full, *url->sval, strlen(*url->sval));
 
     char *query = strchr(host, '/');
 
@@ -134,16 +130,9 @@ int cmd_http_get(int argc, char** argv)
         query = "";
     }
     
-
-    //char *rest = host;
-
-    printf("host %s\n", host);
-
-   // printf("rest %s\n", rest);
-    
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     handle_http_get(host, query);
-    //free(host);
+
    
     return 0;
 }
@@ -178,14 +167,31 @@ int cmd_disconnect(int argc, char** argv)
     return 0;
 }
 
+esp_err_t ip_validate(char *ip)
+{
+    esp_err_t status = ESP_OK;
+
+    for (int i = 0; ip[i] && status == ESP_OK; ++i) {
+		if (isdigit(ip[i]) == 0 && ip[i] != '.') {
+			status = ESP_FAIL;
+		}
+	}
+	for (int i = 0; ip[i + 1] && status == ESP_OK; ++i) {
+		if (ip[i] == '.' && ip[i + 1] == '.') {
+			status = ESP_FAIL;
+		}
+	}
+    return (status);
+}
+
 int cmd_sock_ping(int argc, char** argv)
 {
     int8_t nerrors = 0;
 
     void* argtable[] = {
         ip = arg_str1("i", NULL, "<string>", "ip regexp"),
-        port = arg_intn("p", NULL, "<n>", 0, 1, "the password option"),
-        count = arg_intn("c", NULL, "<n>", 0, 1, "the password option"),
+        port = arg_int1("p", NULL, "<n>", "the port option"),
+        count = arg_int1("c", NULL, "<n>", "the count option"),
         end = arg_end(20),
     };
     port->count = 0;
@@ -195,22 +201,13 @@ int cmd_sock_ping(int argc, char** argv)
 
     nerrors = arg_parse(argc, argv, argtable);
 
-    struct in_addr ip_addr[1];
-
-    int aton_result = 0;
     int ip_len = strlen(*ip->sval);
     char *ip_copy = calloc(ip_len + 1, sizeof(char));
-    //char ip_copy[16];
-    //memset(ip_copy, 0, 16);
+
     memcpy(ip_copy, *ip->sval, ip_len);
 
-    aton_result = inet_aton(ip_copy, &ip_addr);
-
-    printf("%d\n", nerrors);
-    printf("%d\n", aton_result);
-    printf("$%s$\n", ip_copy);
-
-    if (nerrors > 0 || aton_result == 0)
+    esp_err_t is_valid = ip_validate(ip_copy);
+    if (nerrors > 0 || is_valid == ESP_FAIL)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
@@ -232,11 +229,6 @@ int cmd_sock_ping(int argc, char** argv)
     port_copy = *port->ival;
     int count_copy = 0; 
     count_copy = *count->ival;
-
-    port->count = 0;
-    count->count = 0;
-    *port->ival = 0;
-    *count->ival = 0;
 
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
     handle_sock_ping(ip_copy, port_copy, count_copy);
