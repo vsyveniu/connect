@@ -18,8 +18,6 @@
 #include "esp_tls.h"
 #include "esp_wifi.h"
 
-static const char* ERRORTAG = "error: ";
-static const char* INFOTAG = "info: ";
 TaskHandle_t send_dht_handle = NULL;
 
 void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
@@ -94,5 +92,7 @@ void handle_help()
     uart_print_str(UART_NUMBER, "\n\rconnect -s=AP ssid  -p=password");
     uart_print_str(UART_NUMBER, "\n\rconnect -s AP ssid  -p password");
     uart_print_str(UART_NUMBER, "\n\rconnection-status");
+    uart_print_str(UART_NUMBER, "\n\rset-timezone -z UTC-2");
     uart_print_str(UART_NUMBER, "\n\rdisconnect");
+    uart_print_str(UART_NUMBER, "\n\ralarm --val=12:42:42");
 }
