@@ -36,6 +36,11 @@ void register_cmnd_set()
         .func = &cmd_disconnect,
     };
 
+    esp_console_cmd_t cmd_wipe_conf = {
+        .command = "wipe",
+        .func = &cmd_wipe,
+    };
+
     esp_console_cmd_t cmd_help_conf = {
         .command = "help",
         .func = &cmd_help,
@@ -50,6 +55,7 @@ void register_cmnd_set()
     esp_console_cmd_register(&cmd_connection_status_conf);
     esp_console_cmd_register(&cmd_disconnect_conf);
     esp_console_cmd_register(&cmd_wifi_params_conf);
+    esp_console_cmd_register(&cmd_wipe_conf);
     esp_console_cmd_register(&cmd_help_conf);
     esp_console_cmd_register(&cmd_exit_conf);
 }
@@ -140,6 +146,19 @@ int cmd_help(int argc, char** argv)
         return 0;
     }
     handle_help();
+
+    return 0;
+}
+
+int cmd_wipe(int argc, char** argv)
+{
+    if (argc > 1)
+    {
+        uart_print_str(UART_NUMBER, "\n\rType command without options\n\r");
+
+        return 0;
+    }
+    handle_wipe();
 
     return 0;
 }

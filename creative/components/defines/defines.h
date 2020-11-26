@@ -34,8 +34,8 @@ typedef struct wifi_sta_info_t
 
 typedef struct wifi_switch_params_t
 {
-    char* ssid_str;
-    char* passwd;
+    char ssid_str[33];
+    char passwd[64];
 
 } wifi_switch_params_s;
 

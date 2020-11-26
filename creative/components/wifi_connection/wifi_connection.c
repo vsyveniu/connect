@@ -54,8 +54,7 @@ esp_err_t wifi_scan_aps()
             {
                 sprintf(p_index, "%s%s%s", tag_open, p_wifi_records_list[i].ssid, tag_close);
                 p_index = p_index + tag_open_len + ap_len + tag_close_len;
-                aps_len += tag_open_len + ap_len + tag_open_len;
-                 printf("aps len %d\n", aps_len);    
+                aps_len += tag_open_len + ap_len + tag_open_len;  
             }
             
         }
@@ -118,10 +117,6 @@ esp_err_t wifi_init()
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
-
-    printf("passwd in connection %s\n", passwd);
-    printf("ssid in connection %s\n", ssid_name);
-
     if(strlen(ssid_name) > 0)
     {
         wifi_config_t sta_config = {.sta = {
@@ -199,6 +194,7 @@ void wifi_success_conn()
 void wifi_wipe_info()
 {
     wifi_sta_info_s wifi_sta_info[1];
+
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
 
     memset(wifi_sta_info->ssid, 0, 32);
@@ -210,6 +206,38 @@ void wifi_wipe_info()
     wifi_sta_info->is_connected = false;
 
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
+}
+
+void wifi_full_wipe_info()
+{
+    wifi_sta_info_s wifi_sta_info[1];
+    wifi_switch_params_s wifi_switch_info[1];
+
+    xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
+    xQueuePeek(wifi_switch_queue, &wifi_switch_info, 10);
+
+    memset(wifi_switch_info->ssid_str, 0, 33);
+    memset(wifi_switch_info->passwd, 0, 64);
+
+    memset(wifi_sta_info->ssid, 0, 32);
+    wifi_sta_info->wifi_reconnect_count = 0;
+    wifi_sta_info->state = "DISCONNECTED";
+    wifi_sta_info->channel = 0;
+    wifi_sta_info->rssi = 0;
+    wifi_sta_info->ip = NULL;
+    wifi_sta_info->is_connected = false;
+
+    memset(wifi_sta_info->ssid_str, 0, 32);
+    memset(wifi_sta_info->passwd, 0, 63);
+
+    xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
+    xQueueOverwrite(wifi_switch_queue, &wifi_switch_info);
+
+    nvs_open("wifi_store", NVS_READWRITE, &wifi_nvs_handle);
+
+    nvs_erase_key(wifi_nvs_handle, "wifi_ssid");
+    nvs_erase_key(wifi_nvs_handle, "wifi_passwd");
+
 }
 
 void wifi_info_update_ssid(char *ssid, char *passwd)

@@ -22,6 +22,7 @@ int     cmd_help(int argc, char **argv);
 int     cmd_timezone_set(int argc, char** argv);
 int     cmd_alarm(int argc, char** argv);
 int     cmd_wifi_params_set(int argc, char** argv);
+int     cmd_wipe(int argc, char** argv);
 int     cmd_exit();
 
 #endif

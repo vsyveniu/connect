@@ -76,35 +76,15 @@ void handle_wifi_params_set(struct arg_str* ssid, struct arg_str* passwd)
     ssid_len = strlen(*ssid->sval);
     passwd_len = strlen(*passwd->sval);
 
-    char* ssid_copy;
-    char* passwd_copy;
-
-    ssid_copy = calloc(ssid_len + 1, sizeof(char));
-    passwd_copy = calloc(passwd_len + 1, sizeof(char));
-
-    if(ssid_copy != NULL)
-    {
-        memcpy(ssid_copy, *ssid->sval, ssid_len);
-    }
-    else
-    {
-        ssid_copy = "";
-    }
-    if(passwd_copy != NULL)
-    {
-        memcpy(passwd_copy, *passwd->sval, passwd_len);
-    }
-    else
-    {
-        passwd_copy = "";
-    }
-
     wifi_switch_params_s wifi_switch_params[1];
 
-    wifi_switch_params->ssid_str = ssid_copy;
-    wifi_switch_params->passwd = passwd_copy;
+    memcpy(wifi_switch_params->ssid_str, *ssid->sval, ssid_len);
+    wifi_switch_params->ssid_str[ssid_len] = '\0';  
+    memcpy(wifi_switch_params->passwd, *passwd->sval, passwd_len);
+    wifi_switch_params->passwd[passwd_len] = '\0';  
 
     xQueueOverwrite(wifi_switch_queue, &wifi_switch_params);
+
 }
 
 void http_get_task()
@@ -231,6 +211,10 @@ void handle_connection_status() { wifi_display_info(); }
 
 void handle_disconnect() { esp_wifi_disconnect(); }
 
+void handle_wipe()
+{
+   wifi_full_wipe_info();
+}
 
 void handle_help()
 {

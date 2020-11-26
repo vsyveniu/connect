@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "uart_utils_funcs.h"
 #include "freertos/semphr.h"
+#include "nvs_flash.h"
 
 esp_err_t wifi_init();
 esp_err_t wifi_connect(char *ssid_name, char *passwd);
@@ -26,6 +27,7 @@ void wifi_info_update_ssid(char *ssid, char *passwd);
 char *wifi_ssid_to_str(u_int8_t *ssid);
 uint8_t *wifi_str_to_ssid(char *ssid_str);
 esp_err_t   wifi_get_nvs_data(wifi_sta_info_s *wifi_sta_info);
+void wifi_full_wipe_info();
 esp_err_t wifi_scan_aps();
 
 #endif

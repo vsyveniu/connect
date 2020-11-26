@@ -263,12 +263,7 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
     }
     nvs_close(wifi_nvs_handle);
 
-    printf("got ip %s\n", wifi_sta_info->ssid_str);
-    printf("got ip %s\n", wifi_sta_info->passwd);
-
      wifi_sta_info->ip              = ip_buff;
-    /*wifi_sta_info->fallback_ssid   = wifi_sta_info->ssid_str;
-    wifi_sta_info->fallback_passwd = wifi_sta_info->passwd; */
     memcpy(wifi_sta_info->fallback_ssid, wifi_sta_info->ssid_str, strlen(wifi_sta_info->ssid_str));
     wifi_sta_info->fallback_ssid[strlen(wifi_sta_info->ssid_str)] = '\0';
     memcpy(wifi_sta_info->fallback_passwd, wifi_sta_info->passwd, strlen(wifi_sta_info->passwd));
