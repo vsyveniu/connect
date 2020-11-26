@@ -55,12 +55,9 @@ int cmd_ssid_set(int argc, char** argv)
 
     nerrors = arg_parse(argc, argv, argtable);
 
-    printf("ssid sval $%s$\n", *ssid->sval);
-    printf("%d\n" , nerrors);
     if (nerrors > 0 || strlen(*ssid->sval) > 32 || strlen(*passwd->sval) > 63)
     {
         uart_print_str(UART_NUMBER, "\n\rarguments line error\n\r");
-        printf("%s\n", "fuck");
         arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
         return 0;
     }
@@ -101,14 +98,7 @@ int cmd_disconnect(int argc, char** argv)
 
 int cmd_help(int argc, char** argv)
 {
-    printf("%d\n", argc);
-    int i = 0;
-    while (i < argc)
-    {
-        printf("i %d : ", i);
-        printf("argv $%d$\n", (int)argv[i]);
-        i++;
-    }
+
     if (argc > 1)
     {
         uart_print_str(UART_NUMBER, "\n\rType command without options\n\r");

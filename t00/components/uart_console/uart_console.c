@@ -4,14 +4,13 @@
 static QueueHandle_t uart0_queue;
 xSemaphoreHandle mutexInput;
 
-void uart_event_task(void *pvParams)
+void uart_event_task(void* pvParams)
 {
-
     uart_event_t event;
     static BaseType_t xHigherPriorityTaskWoken;
     while (true)
     {
-        if (xQueueReceive(uart0_queue, (void *)&event,
+        if (xQueueReceive(uart0_queue, (void*)&event,
                           (portTickType)portMAX_DELAY))
         {
             vTaskResume(pvParams);
@@ -20,17 +19,17 @@ void uart_event_task(void *pvParams)
     }
 }
 
-void cmd_instance_task(void *pvParams)
+void cmd_instance_task(void* pvParams)
 {
-    char *prompt = "\r> ";
+    char* prompt = "\r> ";
     uint8_t buff[256];
     memset(buff, 0, 256);
     char str[256];
     memset(str, '\0', 256);
-    int i                 = 0;
-    int j                 = 0;
-    int ret               = 0;
-    int is_first          = 1;
+    int i = 0;
+    int j = 0;
+    int ret = 0;
+    int is_first = 1;
     esp_err_t console_ret = 0;
     uint8_t backspace[4] = {0x08, 27, '[', 'P'};
 
@@ -47,7 +46,7 @@ void cmd_instance_task(void *pvParams)
                 is_first = 0;
             }
             int rxlen;
-            ret         = 0;
+            ret = 0;
             console_ret = 0;
             rxlen =
                 uart_read_bytes(UART_NUM_1, buff, 256, 20 / portTICK_RATE_MS);
@@ -55,32 +54,15 @@ void cmd_instance_task(void *pvParams)
             if (buff[0] == 13)
             {
                 uart_saved->p_saved = NULL;
-                int i = 0;
-                char *p_index;
-                char *p_last;
-          /*       p_index = str;
-                p_last = &str[strlen(str)] - 1;
-                while (*p_index == ' ')
+                int z = 0;
+                while (z < strlen(str) && str[z] != '\0')
                 {
-                    p_index++;
+                    if (!isprint(str[z]))
+                    {
+                        str[z] = ' ';
+                    }
+                    z++;
                 }
-                p_last--;
-                while (*p_last == ' ')
-                {
-                    p_last--;
-                    printf("%s\n", "sf");
-                }
-                p_last += 1;
-                *p_last = '\0'; */
-               while(i < strlen(str))
-               {
-                   if(!isprint(str[i]))
-                   {
-                       str[i] = ' ';
-                   }
-                   i++;
-               }
-                printf("$%s$\n", str);
                 xQueueOverwrite(uart_save_input_queue, &uart_saved);
                 console_ret = esp_console_run(str, &ret);
                 if (console_ret == ESP_ERR_INVALID_ARG || i == 0)
@@ -90,7 +72,6 @@ void cmd_instance_task(void *pvParams)
                 }
                 else if (console_ret == ESP_ERR_NOT_FOUND)
                 {
-
                     uart_print_str(UART_NUMBER, "\n\n\rCommand not found\n");
                 }
                 memset(str, '\0', 256);
@@ -117,9 +98,6 @@ void cmd_instance_task(void *pvParams)
                 if (buff[0] == 127 && i > 0)
                 {
                     uart_write_bytes(UART_NUMBER, backspace, 4);
-                  /*    uart_write_bytes(UART_NUMBER, "\b", 1);
-                   uart_write_bytes(UART_NUMBER, 0, 1);
-                    uart_write_bytes(UART_NUMBER, "\b", 1); */
                     i--;
                     str[i] = buff[j];
                     j++;
@@ -163,9 +141,9 @@ int8_t uart_console_init()
 
     esp_console_config_t console_conf = {
         .max_cmdline_length = 256,
-        .max_cmdline_args   = 12,
-        .hint_color         = 37,
-        .hint_bold          = 1,
+        .max_cmdline_args = 12,
+        .hint_color = 37,
+        .hint_bold = 1,
     };
 
     err = esp_console_init(&console_conf);
@@ -177,7 +155,7 @@ int8_t uart_console_init()
     uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
+        .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
 
@@ -191,7 +169,7 @@ int8_t uart_console_init()
 
     TaskHandle_t xcmdHandle = NULL;
 
-    mutexInput        = xSemaphoreCreateBinary();
+    mutexInput = xSemaphoreCreateBinary();
     uart_mutex_output = xSemaphoreCreateMutex();
 
     uart_save_input_queue = xQueueCreate(1, sizeof(uart_saved_input_s));
