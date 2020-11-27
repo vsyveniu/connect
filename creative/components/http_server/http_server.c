@@ -268,75 +268,7 @@ esp_err_t post_handler(httpd_req_t* req)
     {
         resp = "Can't scan";
     }
-    /* if(strstr(content, "connect"))
-    {
-        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
-        printf("%s\n", "POST from sta");
-        char passwd_str[32];
-        char ssid_str[32];
-        memset(passwd_str, 0, 32);
-        memset(ssid_str, 0, 32);
-        char *name_field_start = NULL;
-        name_field_start = strstr(content, "ssid");
-        if(name_field_start)
-        {
-            char *ssid = NULL;
-            ssid = strstr(name_field_start, "\n\r");
-            if(ssid)
-            {
-                
-                int i = 0;
-                while(*ssid == '\n' || *ssid == '\r')
-                {
-                    ssid++;
-                }
-                while(ssid[i] != '\n')
-                {
-                    i++;
-                }
-                memcpy(ssid_str, ssid, i);
-                ssid_str[i - 1] = '\0';
-            
-            }
-        }
-        char *passwd_field_start = NULL;
-        passwd_field_start = strstr(content, "passwd");
-        if(passwd_field_start)
-        {
-            char *passwd = NULL;
-            passwd = strstr(passwd_field_start, "\n\r");
-            if(passwd)
-            {
-               
-                int i = 0;
-                while(*passwd == '\n' || *passwd == '\r')
-                {
-                    passwd++;
-                }
-                while(passwd[i] != '\n')
-                {
-                    i++;
-                }
-                memcpy(passwd_str, passwd, i);
-                passwd_str[i - 1] = '\0';
-            }
-        }
-         esp_wifi_disconnect();
- 
-         if(strlen(passwd_str) > 0)
-         {
-             wifi_connect(ssid_str, passwd_str);
-         }
-         else
-         {
-              wifi_connect(ssid_str, "");
-         } 
-         return ESP_OK;      
-    }
-    else
-    {
-        resp = "can't connect";
-    } */
+   
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
