@@ -43,6 +43,8 @@ esp_err_t get_handler(httpd_req_t* req)
         char lineRead[256];
 
         is_filled = uxQueueMessagesWaiting(wifi_scan_queue);
+
+        httpd_resp_set_hdr(req, "Connection", "close");
         
         if (is_filled)
         {
@@ -147,6 +149,7 @@ esp_err_t post_connect_handler(httpd_req_t* req)
 
     size_t recv_size = sizeof(content);
     int ret = httpd_req_recv(req, content, recv_size);
+    httpd_resp_set_hdr(req, "Connection", "close");
 
     if (ret <= 0)
     {
