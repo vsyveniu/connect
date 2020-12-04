@@ -212,14 +212,17 @@ esp_err_t post_connect_handler(httpd_req_t* req)
             }
         }
          esp_wifi_disconnect();
+
+         esp_err_t err;
  
          if(strlen(passwd_str) > 0)
          {
              wifi_connect(ssid_str, passwd_str);
+
          }
          else
          {
-              wifi_connect(ssid_str, "");
+             wifi_connect(ssid_str, "");
          }
          httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN); 
          return ESP_OK;      

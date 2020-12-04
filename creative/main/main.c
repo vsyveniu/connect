@@ -73,7 +73,7 @@ void app_main()
 {
     esp_err_t err;
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+   // vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     nvs_flash_init();
 
@@ -129,18 +129,24 @@ void app_main()
     get_url_params_queue = xQueueCreate( 1, sizeof(get_url_params_s) );
     wifi_scan_queue = xQueueCreate( 1, sizeof(char) * 1024);
 
-    butt_queue = xQueueCreate(1, sizeof(int));
+   // butt_queue = xQueueCreate(1, sizeof(int));
 
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTT_1, butt1_handler, (void*)BUTT_1);
+   // gpio_install_isr_service(0);
+    //gpio_isr_handler_add(BUTT_1, butt1_handler, (void*)BUTT_1);
 
-    xTaskCreate(butt1_pushed, "button 1 task", 2048, NULL, 1, NULL);
+    //xTaskCreate(butt1_pushed, "button 1 task", 2048, NULL, 1, NULL);
 
-    wifi_scan_aps();
-    wifi_connect(wifi_sta_info.ssid_str, wifi_sta_info.passwd);
 
-    esp_netif_create_default_wifi_ap();
-    esp_wifi_set_mode(WIFI_MODE_APSTA);
-    http_server_init();
-
+    if(strlen(wifi_sta_info.ssid_str) > 0)
+    {
+        wifi_connect(wifi_sta_info.ssid_str, wifi_sta_info.passwd);
+    }
+    else
+    {
+        wifi_scan_aps();
+        esp_netif_create_default_wifi_ap();
+        esp_wifi_set_mode(WIFI_MODE_APSTA);
+        http_server_init();
+    }
+    
 }
